@@ -1,0 +1,15 @@
+{
+  "file": "sk-hynix-ci.png",
+  "source_page": "https://www.skhynix.com.cn/prCi.jsp",
+  "source_url": "https://www.skhynix.com.cn/images/prCi.png",
+  "retrieved": "2026-10-30",
+  "sha256": "b443df68868096005e071937e4f79fd2561a5498cb40dddfd40bae3b35c052a2",
+  "width": 220,
+  "height": 116,
+  "mode": "RGBA",
+  "alpha_extrema": [
+    0,
+    255
+  ],
+  "modified": false
+}

@@ -1,0 +1,2 @@
+# Windows 에서 클론해도 셸 스크립트가 그대로 돌게 한다
+*.sh text eol=lf

@@ -1,0 +1,35 @@
+# probe-harness
+
+SK하이닉스 AI 해커톤 2026 **2차 예선**(Cofa Probe 웹 IDE, 제공 Codex 만 사용) 응시자가 쓰는 작업 하네스.
+
+## 이 README 를 읽은 에이전트에게 — 지금 상황
+
+- 사용자는 지금 **시험 중**이다. 과제 타이머가 시작됐고 과제 풀이는 기본 180분, 이어 후속 서술형(AI 금지)이 있다. 실제 시작·종료 시각은 세팅 뒤 `docs/과제설정.md` 4절에 적는다.
+- **너는 오케스트레이터(오케)다.** 계획·분해·공유 문서·검수·커밋을 맡는다. 실무자 대화는 DM 세션이, 구현은 사용자가 새 탭에 띄우는 구현 세션이, 서버·Docker·E2E 는 통합 세션이 한다.
+- 작업 공간(사용자가 Codex 를 연 폴더, 보통 `~/workspace`) 루트의 `README.md` 와 그 옆 파일들(출력 계약 · 데이터 설명 · 제출 양식)은 **과제 원문**이다. 이 레포의 README(지금 이 글)와 다르다. 세팅은 과제 원문을 덮지 않는다.
+- 공통 규칙은 세팅 뒤 작업 공간에 생기는 `AGENTS.md`, 오케의 신호 규칙은 `harness/roles/오케.md` 다.
+
+## 세팅 — 이 레포를 클론하라는 요청을 받았으면 (사용자 문구가 「상황 파악」「세팅」 등 무엇이든 같다)
+
+1. 클론 위치는 **작업 공간 안의 `probe-harness/`** 다. 다른 곳에 클론했으면 아래 명령에 작업 공간 경로를 인자로 넘긴다.
+2. 작업 공간에서 실행한다:
+   ```bash
+   bash probe-harness/setup.sh
+   ```
+   setup.sh 는 **고치지 않고 그대로** 돌린다 — 스킬을 `CODEX_HOME/skills` 에 등록하고 클론 폴더를 지우는 것은 허용된 동작이다(과제 지침의 「파일은 이 안에서만」과 충돌로 보지 않는다). `CODEX_HOME`·`TMP` 같은 환경변수를 바꿔 돌리지 않는다. 세팅 전부터 있던 파일(과제 원본)은 종류와 상관없이 덮지 않고, 과제가 준 `AGENTS.md` 는 우리 `AGENTS.md` 맨 끝 「과제 환경이 준 원래 지침」 절로 옮긴다.
+3. setup.sh 출력 맨 끝 **「다음(에이전트)」 지시를 그대로 따른다.** 세팅 뒤 할 일(역할 읽기 · 세션 등록 · 보고 전달 · 덧붙일 안내)의 정본은 그 출력 하나다.
+
+## 세팅 뒤 작업 공간 모습
+
+```
+README.md  EXPORT_SCHEMA.md 류  data/ …   ← 과제 원문 (그대로 — 루트 README 취급은 docs/과제설정.md 2절)
+메모.md                    ← 사용자가 직접 만드는 메모장 (에이전트는 읽지 않는다)
+AGENTS.md                  ← 모든 탭 공통 규칙
+docs/                      ← 과제설정 · PROBLEM · PLAN · ARCHITECTURE · DECISIONS · 세션.txt · interview/
+.agents/skills/            ← 스킬 8개 ($handoff $verify $decision $evaluate $security $submit $grilling $systematic-debugging)
+harness/                   ← 에이전트만 본다: roles/ guides/ starter/ tools/ vendor/ verify.sh
+```
+
+## 흐름 한 줄
+
+세팅 → 「과제 시작하자」(원문 전부 → 과제설정 · PROBLEM 첫판 → 채팅 보고) → 「DM 시작하자」(DM 탭) → 「문제 확정」 → 조사 갈래(「돌려」) → 설계 점검표 → `$grilling` 빈틈 훑기 → 솔루션 브리핑 → 「OK」(스캐폴드·계약 테스트·브리프) → 솔루션 DM → 「솔루션 확정」(코어·통합·화면 탭) → 구현 → 얇은 결과 시연 → 피드백 DM · 독립 재계산 → 「피드백 끝」 동결 → 보안·평가·제출 점검 서브에이전트 병렬 → `final` → 제출. 단계별 상세는 `harness/guides/STAGES/`.

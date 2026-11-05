@@ -1,0 +1,29 @@
+/* 인쇄 = 브라우저 인쇄 → PDF 저장. A4 세로 · 사이드바·헤더·필터 숨김 · 카드는 얇은 테두리(그림자 없음) · 차트·카드·표 행은 쪽 중간에서 안 잘림 · 표 머리글은 쪽마다 반복 · 쪽 번호.
+   제목·기준 시각·적용 필터 한 줄은 리포트 페이지의 [data-print-head] (화면에서는 숨김). */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 12mm 12mm 16mm;
+    @bottom-center { content: counter(page) " / " counter(pages); font-size: 9pt; color: #666666; }
+  }
+  html, body { background: #ffffff !important; }
+  body { font-size: 11px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+  /* 화면 틀 걷어내기 */
+  [data-slot="sidebar"], [data-slot="sidebar-gap"], [data-slot="sidebar-container"], [data-slot="sidebar-inset"] > header,
+  [data-filter], [data-sonner-toaster], [data-slot="sidebar-trigger"] { display: none !important; }
+  [data-slot="sidebar-wrapper"] { display: block !important; min-height: 0 !important; background: #ffffff !important; }
+  [data-slot="sidebar-inset"] { margin: 0 !important; border-radius: 0 !important; box-shadow: none !important; background: #ffffff !important; min-height: 0 !important; }
+  [data-page] { padding-block: 0 !important; gap: 12px !important; }
+
+  /* 카드: 얇은 테두리, 그림자 없음, 쪽 중간에서 안 잘림 */
+  [data-slot="card"] { background: #ffffff !important; background-image: none !important; box-shadow: none !important; border: 1px solid #d4d4d4 !important; border-radius: 4px !important; break-inside: avoid; page-break-inside: avoid; }
+  .recharts-responsive-container, .recharts-wrapper, [data-slot="chart"] { break-inside: avoid; page-break-inside: avoid; }
+
+  /* 표: 머리글 쪽마다 반복, 행은 안 잘림, 가로 스크롤 상자는 펼침 */
+  [data-slot="table-container"] { overflow: visible !important; }
+  thead { display: table-header-group; }
+  tfoot { display: table-footer-group; }
+  tr { break-inside: avoid; page-break-inside: avoid; }
+  pre { max-height: none !important; overflow: visible !important; }
+}

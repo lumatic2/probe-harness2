@@ -1,0 +1,29 @@
+
+/* 폰트 = Pretendard 고정(사용자 결정 10-29): make.sh 가 키트 woff2 를 src/assets/ 로 복사한다. 라이트 모드만 — .dark 는 쓰지 않는다. */
+@font-face { font-family: "Pretendard Variable"; font-weight: 45 920; font-style: normal; font-display: swap; src: url("./assets/PretendardVariable.woff2") format("woff2-variations"); }
+
+/* SK 토큰 매핑 — make.sh 가 src/index.css 끝에 붙인다. 원칙(사용자 판정 10-29): shadcn 컴포넌트의 모양·상태 표현은 원본 그대로, 바꾸는 것은 색 토큰·데이터·라벨뿐 (원본에 없는 장식 = slop).
+   색 시안 C: 주 버튼 = 검정 + 흰 글자(원본 primary 와 같은 결), SK 주황은 데이터(차트 강조 계열·긴급 배지·히트맵)에만. 포커스 링·선택 표시·테두리에 주황 금지. 주황 면 위 글자 금지(히트맵 최진 칸만 #c24e00 + 흰 글자). */
+:root {
+  --primary: #121212;
+  --primary-foreground: #ffffff;
+  --sk-orange: #ff6600;
+  --chart-1: #ff6600;
+  --chart-2: #898989;
+  /* 노드 그래프(W19) 그룹 색 — 경로·라인을 가르는 6색. 차트 색(회색 계열·강조 하나)과 달리 서로 구별되어야 해서 따로 둔다 */
+  --graph-1: #ff6600;
+  --graph-2: #2f6fed;
+  --graph-3: #1a9e6a;
+  --graph-4: #8a4fd3;
+  --graph-5: #c8102e;
+  --graph-6: #0b8f99;
+  --font-sans: "Pretendard Variable", Pretendard, "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+}
+/* 화면 설정(lib/prefs.ts) — <html data-font data-density> */
+html[data-font="small"] { font-size: 14px; }
+html[data-font="large"] { font-size: 18px; }
+html[data-density="compact"] td, html[data-density="compact"] th { padding-block: 0.25rem; }
+html[data-density="compact"] [data-slot="card-content"] { padding-block: 0.5rem; }
+
+/* 긴급·정지 배지 = 옅은 주황 바탕 + 진한 주황 글자 + 옅은 테두리 (Badge variant="outline" 에 얹는다) */
+.sk-urgent { background: #fff1e6; color: #b84a00; border-color: #ffd2b0; }

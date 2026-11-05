@@ -1,0 +1,1 @@
+Pretendard Variable 1.3.9 (npm `pretendard`, https://github.com/orioncactus/pretendard) · `PretendardVariable.woff2` 2,057,688 B · 라이선스 SIL OFL-1.1 (`LICENSE-Pretendard-OFL-1.1.txt`) · 사용자 결정 10-29: 폰트 = Pretendard 고정, 외부 CDN 없이 키트 동봉.

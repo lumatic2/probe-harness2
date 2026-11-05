@@ -1,0 +1,560 @@
+{
+ "name": "alarm",
+ "import": {"maxKB": 500},
+ "params": [
+  {"key": "esc_h", "label": "에스컬레이션 기준", "unit": "시간", "type": "number", "default": 48, "min": 1, "max": 336, "step": 1, "affects": "미완료 알람의 에스컬레이션 대상"},
+  {"key": "util_target", "label": "가동률 목표", "unit": "%", "type": "number", "default": 92, "min": 50, "max": 100, "step": 0.5, "affects": "평균 가동률 목표선"},
+  {"key": "done_target", "label": "조치 완료율 목표", "unit": "%", "type": "number", "default": 85, "min": 0, "max": 100, "step": 1, "affects": "조치 완료율 목표선"},
+  {"key": "ctl_k", "label": "관리도 폭", "unit": "σ", "type": "number", "default": 1.5, "min": 1, "max": 3, "step": 0.5, "affects": "일별 알람 건수 관리도 한계"}
+ ],
+ "judge": {"value": {"age": "ts", "per": "h"}, "where": {"!status": ["완료"]}, "rules": [{"label": "에스컬레이션", "op": ">=", "at": "$param:esc_h"}], "else": "기한 내"},
+ "whatIf": {"metrics": ["esc", "util", "doneRate", "perDay"]},
+ "app": {
+  "name": "팹 장비 운영",
+  "title": "팹 장비 운영 현황",
+  "question": "지금 먼저 조치해야 할 장비 알람은 무엇인가",
+  "asOf": "2026-10-28 09:00",
+  "today": "2026-10-28",
+  "limit": "가상 데이터(실제 팹과 무관) · 점검·정지 장비 5대도 집계에 포함 · 10-28 09:00 이후 알람은 반영되지 않음",
+  "help": "장비 운영 당직 · 내선 1234 · 가상 번호",
+  "user": {
+   "name": "담당 A조",
+   "email": "a-team@fab-ops.example",
+   "initials": "A조"
+  },
+  "icon": "cpu"
+ },
+ "entity": {
+  "singular": "알람",
+  "plural": "알람",
+  "unit": "건",
+  "idLabel": "알람 ID",
+  "searchHint": "알람 ID·장비·코드 검색",
+  "ownerLabel": "담당 조"
+ },
+ "cols": [
+  {
+   "key": "alarm_id",
+   "label": "알람",
+   "type": "text",
+   "width": 104
+  },
+  {
+   "key": "equip",
+   "label": "장비",
+   "type": "text",
+   "filter": "chip",
+   "width": 96,
+   "edit": true
+  },
+  {
+   "key": "proc",
+   "label": "공정",
+   "type": "text",
+   "filter": "chip",
+   "width": 72
+  },
+  {
+   "key": "code",
+   "label": "코드",
+   "type": "text",
+   "filter": "chip",
+   "width": 200,
+   "names": {
+    "E-101": "챔버 압력 이탈",
+    "E-102": "RF 반사 전력 높음",
+    "E-103": "가스 유량 편차",
+    "D-201": "증착 온도 편차",
+    "D-202": "전구체 공급 부족",
+    "D-203": "두께 규격 이탈 경고",
+    "P-301": "정렬 오차 초과",
+    "P-302": "노광 조도 저하",
+    "P-303": "레티클 로딩 지연",
+    "C-401": "약액 농도 이탈",
+    "C-402": "순수 비저항 저하",
+    "C-403": "건조 불량",
+    "M-501": "패드 마모 한계",
+    "M-502": "슬러리 유량 저하",
+    "M-503": "헤드 압력 편차"
+   }
+  },
+  {
+   "key": "severity",
+   "label": "심각도",
+   "type": "enum",
+   "badge": true,
+   "filter": "select",
+   "edit": true,
+   "width": 88,
+   "values": [
+    {
+     "v": "긴급",
+     "tone": "urgent"
+    },
+    {
+     "v": "주의",
+     "tone": "warn"
+    },
+    {
+     "v": "정보",
+     "tone": "plain"
+    }
+   ]
+  },
+  {
+   "key": "ts",
+   "label": "발생 시각",
+   "type": "date",
+   "width": 120
+  },
+  {
+   "key": "status",
+   "label": "상태",
+   "type": "enum",
+   "badge": true,
+   "filter": "select",
+   "edit": true,
+   "width": 96,
+   "values": [
+    {
+     "v": "미조치",
+     "tone": "warn"
+    },
+    {
+     "v": "조치중",
+     "tone": "plain"
+    },
+    {
+     "v": "완료",
+     "tone": "muted",
+     "done": true
+    }
+   ]
+  },
+  {
+   "key": "goal",
+   "label": "목표(분)",
+   "type": "number",
+   "editable": true,
+   "edit": true,
+   "only": "shadcn",
+   "width": 88,
+   "virtual": {
+    "by": "severity",
+    "map": {
+     "긴급": 30,
+     "주의": 120,
+     "정보": 480
+    }
+   }
+  },
+  {
+   "key": "limit",
+   "label": "상한(분)",
+   "type": "number",
+   "editable": true,
+   "edit": true,
+   "only": "shadcn",
+   "width": 88,
+   "virtual": {
+    "by": "severity",
+    "map": {
+     "긴급": 60,
+     "주의": 240,
+     "정보": 720
+    }
+   }
+  },
+  {
+   "key": "owner",
+   "label": "담당",
+   "type": "person",
+   "unassigned": "미지정",
+   "edit": true,
+   "width": 112,
+   "options": [
+    "담당 A조",
+    "담당 B조",
+    "담당 C조",
+    "담당 D조"
+   ]
+  }
+ ],
+ "roles": {
+  "id": "alarm_id",
+  "title": "{equip} {code:name}",
+  "status": "status",
+  "priority": "severity",
+  "date": "ts",
+  "owner": "owner",
+  "group": "proc",
+  "unit": "equip",
+  "deadline": null
+ },
+ "group": {
+  "col": "proc",
+  "label": "공정",
+  "suffix": "공정",
+  "values": [
+   "식각",
+   "증착",
+   "포토",
+   "세정",
+   "CMP"
+  ]
+ },
+ "metrics": [
+  {
+   "key": "util",
+   "label": "평균 가동률",
+   "agg": "series",
+   "unit": "%",
+   "decimals": 1,
+   "better": "up",
+   "target": "$param:util_target"
+  },
+  {
+   "key": "count",
+   "label": "알람 건수",
+   "agg": "count",
+   "unit": "건",
+   "better": null
+  },
+  {
+   "key": "urgent",
+   "label": "긴급 알람",
+   "agg": "count",
+   "where": {
+    "severity": [
+     "긴급"
+    ]
+   },
+   "unit": "건",
+   "better": "down"
+  },
+  {
+   "key": "open",
+   "label": "미조치",
+   "agg": "count",
+   "where": {
+    "status": [
+     "미조치"
+    ]
+   },
+   "unit": "건",
+   "better": "down"
+  },
+  {
+   "key": "doneRate",
+   "label": "조치 완료율",
+   "agg": "rate",
+   "where": {
+    "status": [
+     "완료"
+    ]
+   },
+   "unit": "%",
+   "decimals": 1,
+   "better": "up",
+   "target": "$param:done_target"
+  },
+  {
+   "key": "perDay",
+   "label": "일 평균 알람",
+   "agg": "perDay",
+   "unit": "건",
+   "decimals": 1,
+   "better": "down",
+   "target": 25
+  },
+  {
+   "key": "esc",
+   "label": "에스컬레이션 대상",
+   "agg": "count",
+   "where": {
+    "_judge": [
+     "에스컬레이션"
+    ]
+   },
+   "unit": "건",
+   "better": "down"
+  }
+ ],
+ "cards": [
+  "util",
+  "count",
+  "urgent",
+  "open",
+  "doneRate"
+ ],
+ "progress": [
+  "util",
+  "doneRate",
+  "perDay"
+ ],
+ "due": "2026-10-31",
+ "summary": [
+  "urgent",
+  "open",
+  "doneRate"
+ ],
+ "summaryTargets": [
+  "util"
+ ],
+ "trend": {
+  "metric": "util",
+  "title": "가동률 추세",
+  "allName": "전체 평균",
+  "anomaly": 3
+ },
+ "rank": {
+  "col": "code",
+  "title": "코드별 알람",
+  "topN": 5
+ },
+ "stack": {
+  "title": "공정별 심각도 구성",
+  "by": "proc",
+  "parts": "severity"
+ },
+ "heat": {
+  "title": "요일×시간대 알람",
+  "cols": "slot"
+ },
+ "funnel": {
+  "title": "조치 단계",
+  "steps": [
+   {
+    "label": "알람 발생"
+   },
+   {
+    "label": "조치 착수",
+    "where": {
+     "!status": [
+      "미조치"
+     ]
+    }
+   },
+   {
+    "label": "조치 완료",
+    "where": {
+     "status": [
+      "완료"
+     ]
+    }
+   }
+  ]
+ },
+ "queue": {
+  "title": "먼저 볼 알람",
+  "where": {
+   "!status": [
+    "완료"
+   ],
+   "!severity": [
+    "정보"
+   ]
+  },
+  "columns": [
+   "alarm_id",
+   "equip",
+   "severity",
+   "ts",
+   "status"
+  ],
+  "limit": 15,
+  "topN": 5
+ },
+ "alerts": {
+  "title": "지금 문제가 되는 것",
+  "where": {
+   "severity": [
+    "긴급"
+   ],
+   "status": [
+    "미조치"
+   ]
+  },
+  "badge": "severity",
+  "note": "{status}",
+  "limit": 5,
+  "actionLabel": "긴급 미조치 건 보기"
+ },
+ "board": {
+  "title": "알람 상태 보드",
+  "meta": "{severity} · {_date}"
+ },
+ "timeline": {
+  "title": "작업 일정"
+ },
+ "activity": {
+  "title": "최근 활동"
+ },
+ "layout": {
+  "title": "장비 배치도",
+  "unitCol": "equip",
+  "cols": 6,
+  "states": [
+   "가동",
+   "점검",
+   "정지"
+  ],
+  "countWhere": {
+   "severity": [
+    "긴급"
+   ]
+  },
+  "countLabel": "긴급",
+  "badAt": 3
+ },
+ "tabs": [
+  {
+   "key": "all",
+   "label": "전체"
+  },
+  {
+   "key": "urgent",
+   "label": "긴급",
+   "where": {
+    "severity": [
+     "긴급"
+    ]
+   },
+   "count": true
+  },
+  {
+   "key": "open",
+   "label": "미조치",
+   "where": {
+    "status": [
+     "미조치"
+    ]
+   },
+   "count": true
+  },
+  {
+   "key": "esc",
+   "label": "에스컬레이션",
+   "where": {
+    "_judge": [
+     "에스컬레이션"
+    ]
+   },
+   "count": true
+  },
+  {
+   "key": "done",
+   "label": "조치 완료",
+   "where": {
+    "status": [
+     "완료"
+    ]
+   }
+  }
+ ],
+ "rules": [
+  {
+   "col": "severity",
+   "value": "긴급",
+   "text": "긴급: 장비 정지·규격 이탈 가능성이 있는 알람"
+  },
+  {
+   "col": "severity",
+   "value": "주의",
+   "text": "주의: 당일 안에 확인해야 하는 알람"
+  },
+  {
+   "col": "severity",
+   "value": "정보",
+   "text": "정보: 기록용 알람"
+  },
+  {
+   "col": "status",
+   "value": [
+    "미조치",
+    "조치중"
+   ],
+   "text": "미조치: 담당 조가 아직 착수하지 않은 상태, 조치중: 착수했으나 닫히지 않은 상태"
+  },
+  {
+   "text": "조치 완료율 = 완료 건수 / 기간 내 알람 건수"
+  },
+  {
+   "text": "가동률 = 공정별 일 가동률의 단순 평균"
+  }
+ ],
+ "related": {
+  "col": "equip",
+  "title": "같은 장비의 최근 7일 알람",
+  "days": 7,
+  "item": "{code:name}",
+  "badge": "severity",
+  "note": "{status}"
+ },
+ "evidence": [
+  "{alarm_id} · {code} {code:name}",
+  "같은 장비({equip}) 최근 7일 알람 {_related}건",
+  "상태 {status} · 담당 {owner}"
+ ],
+ "newRow": {
+  "severity": "정보",
+  "status": "미조치",
+  "owner": "미지정",
+  "ts": "{_today}T09:00:00"
+ },
+ "control": {"title": "일별 알람 건수 관리도", "metric": "count", "k": "$param:ctl_k", "days": 13, "endOffset": -1},
+ "dist": {"title": "알람 발생 시각 분포", "value": {"hour": "ts"}, "unit": "시", "label": "발생 시각", "groupBy": "severity"},
+ "matrix": {"title": "공정×심각도 알람 건수", "rows": "proc", "cols": "severity", "agg": "count"},
+ "form": {
+  "title": "판정 입력",
+  "intro": "알람을 고르고 조치 소요와 판정, 사유를 남기면 변경 이력에 쌓입니다.",
+  "refLabel": "알람 ID",
+  "refMsg": "존재하는 알람 ID 를 고르세요.",
+  "openWhere": {
+   "!status": [
+    "완료"
+   ]
+  },
+  "who": "담당 A조",
+  "historyTitle": "최근 저장된 판정",
+  "emptyHistory": "저장된 판정이 없습니다.",
+  "itemHistoryTitle": "변경 이력",
+  "action": "판정 입력",
+  "fields": [
+   {
+    "key": "value",
+    "label": "조치 소요(분)",
+    "type": "number",
+    "min": 0,
+    "required": true,
+    "msg": "조치 소요(분)를 0 이상의 숫자로 입력하세요."
+   },
+   {
+    "key": "decision",
+    "label": "판정",
+    "type": "radio",
+    "options": [
+     "승인",
+     "반려"
+    ],
+    "required": true,
+    "msg": "승인 또는 반려를 선택하세요."
+   },
+   {
+    "key": "reason",
+    "label": "사유 (필수)",
+    "type": "textarea",
+    "required": true,
+    "msg": "사유를 입력하세요."
+   }
+  ]
+ },
+ "notice": {
+  "file": "alarm-notice",
+  "template": "[팹 장비 운영] 조치 요청\n- 알람: {alarm_id} ({severity})\n- 장비: {equip} · {proc} 공정\n- 내용: {code} {code:name}\n- 발생: {_date}\n- 현재 상태: {status} · 담당 {owner}\n위 알람의 조치 상황을 확인해 회신해 주세요."
+ },
+ "report": {
+  "memoTitle": "인수인계 메모"
+ },
+ "chat": {"on": true, "docs": true, "title": "장비 알람 질문", "suggestions": ["긴급 알람은 몇 건이야?", "평균 가동률이 어때?", "미조치 알람이 얼마나 돼?"]}
+}

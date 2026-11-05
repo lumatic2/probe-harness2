@@ -1,0 +1,14 @@
+[
+  {
+    "id": "case-1",
+    "value": "urgent"
+  },
+  {
+    "id": "case-2",
+    "value": "normal"
+  },
+  {
+    "id": "case-3",
+    "value": "unknown"
+  }
+]

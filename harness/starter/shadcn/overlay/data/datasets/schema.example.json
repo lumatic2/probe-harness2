@@ -1,0 +1,9 @@
+{
+  "_doc": "데이터셋 검증 규칙 견본. 과제 CSV 묶음을 data/datasets/<이름>/ 에 두고 이 파일을 schema.json 으로 복사해 열 이름을 맞춘다(규칙 모양은 server/datasets.mjs 머리 주석). schema.json 이 없으면 「CSV 가 읽히고 머리글이 있다」만 본다. types: number | date(YYYY-MM-DD) | time(HH:MM) | enum:값1|값2 · key: 고유해야 하는 열 · refs: 다른 파일의 열에 있어야 하는 ID · optionalFiles: 없어도 되는 파일.",
+  "files": {
+    "stops.csv": { "required": ["stop_id", "name", "lat", "lon"], "key": "stop_id", "types": { "lat": "number", "lon": "number" } },
+    "employees.csv": { "required": ["emp_id", "stop_id"], "key": "emp_id", "refs": { "stop_id": "stops.csv:stop_id" }, "types": { "shift": "enum:주간|야간", "arrive_by": "time" } },
+    "holidays.csv": { "types": { "date": "date" } }
+  },
+  "optionalFiles": ["holidays.csv"]
+}

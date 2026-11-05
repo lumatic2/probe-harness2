@@ -1,0 +1,11 @@
+# Dockerfile 과 함께 레포 루트에 복사한다. 비밀·저장물·빌드 산출물은 이미지에 넣지 않는다.
+**/.env
+**/.env.*
+!**/.env.example
+**/node_modules
+**/dist
+**/data/store
+**/.git
+**/*.log
+harness/vendor
+docs

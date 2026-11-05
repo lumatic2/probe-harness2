@@ -1,0 +1,15 @@
+# 시크릿·로컬 상태 — 커밋 금지
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+credentials*.json
+
+# 런타임 잡동사니
+node_modules/
+dist/
+.DS_Store
+*.log
+__pycache__/
+*.pyc
