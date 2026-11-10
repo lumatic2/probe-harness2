@@ -52,6 +52,51 @@ class EvidenceCheckTest(unittest.TestCase):
         self.assertIn("2줄인데 9줄", joined)
         self.assertIn("test_nope 없음", joined)
 
+    PROBLEM = "# P\n## 3. 요구 표\n| ID | 요구 | MUST/선택 | 근거 | 상태 |\n|---|---|---|---|---|\n{}\n## 4. 규칙\n| R99 | 다른 절 | | | |\n"
+
+    def test_missing_requirement_id(self):
+        rows = "| R1 | 집계 | MUST | | |\n| R10 | 내보내기 | MUST | | |"
+        readme = README_OK.replace("| 집계 |", "| R1 집계 |")
+        rc, msgs = check(repo(readme, {**FILES, "docs/PROBLEM.md": self.PROBLEM.format(rows)}))
+        self.assertEqual(rc, 1)
+        self.assertEqual(msgs, ["요구 ID 누락: R10 — 「된다」나 「안 된다」에 적는다(docs/PROBLEM.md 3절)"])
+
+    def test_requirement_covered_by_not_done_section(self):
+        rows = "| R1 | 집계 | MUST | | |\n| R2 | 실시간 | 선택 | | |"
+        readme = README_OK.replace("| 집계 |", "| R1 집계 |").replace("| 실시간 |", "| R2를 뺌 |")
+        rc, msgs = check(repo(readme, {**FILES, "docs/PROBLEM.md": self.PROBLEM.format(rows)}))
+        self.assertEqual(rc, 0, msgs)
+        self.assertIn("요구 ID 2개 대조", msgs[0])
+
+    def test_requirement_outside_sections_does_not_count(self):
+        rows = "| R2 | 실시간 | MUST | | |"
+        readme = README_OK + "\n## 근거 장부\n- R2 는 다음에\n~~R2~~\n"
+        rc, msgs = check(repo(readme, {**FILES, "docs/PROBLEM.md": self.PROBLEM.format(rows)}))
+        self.assertEqual(rc, 1)
+        self.assertIn("R2", msgs[0])
+
+    def test_struck_and_empty_requirements_are_skipped(self):
+        rows = "| R1 | ~~없앤 요구~~ | | | |\n| R2 | | | | |"
+        rc, msgs = check(repo(README_OK, {**FILES, "docs/PROBLEM.md": self.PROBLEM.format(rows)}))
+        self.assertEqual(rc, 0, msgs)
+
+    def test_how_to_run_subheadings(self):
+        rows = "| R1 | 집계 | MUST | | |\n| R2 | 실시간 | 선택 | | |"
+        readme = """# H
+## 6. 테스트
+### 된다 (표)
+| 요구 | 증거 |
+|---|---|
+| R1 집계 | `src/a.py:1` |
+### 안 된다 / 안 했다
+- R2 실시간 — 범위 밖
+## 7. 가정
+### AI 활용 기록
+- 탭 수: 3
+"""
+        rc, msgs = check(repo(readme, {**FILES, "docs/PROBLEM.md": self.PROBLEM.format(rows)}))
+        self.assertEqual(rc, 0, msgs)
+
     def test_no_table_is_noverify(self):
         self.assertEqual(check(repo("# 도구\n설명만 있음\n", {}))[0], 2)
 
