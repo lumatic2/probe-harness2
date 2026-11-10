@@ -46,11 +46,15 @@ description: 세션 사이의 전달 전부 — 주소 찾기(docs/세션.txt), 
 
 **오케**: 먼저 **승계 선언** — 세션.txt 의 살아 있는 탭 전부에 `[오케→전체] 승계 시작 — 답 올 때까지 queue 금지, 급한 것은 docs/mail/오케.md 에 적을 것`. 그 뒤 쌓인 queue 와 `docs/mail/오케.md` 를 끝까지 소화한다(처리한 줄 끝에 `처리함 HH:MM`). 그리고 `docs/HANDOFF.md` 를 지금 기준으로 다시 쓴다(지금 어디(단계 · 마지막 커밋 · 과제설정 4절 시간) / 끝난 것(파일·증거) / 다음 할 일(첫 행동 한 줄) / 열린 질문·막힌 것(실무자 답 대기 · 사용자 결정 · 미처리 queue · 살아 있는 탭 목록)). 확인한 것만 적는다. 커밋 `handoff: <단계> — <한 줄>`. 새 탭 문장은 `harness/guides/편성.md` 「승계」. 새 오케는 `docs/mail/오케.md` 의 미처리 줄을 먼저 읽고, 세션.txt 의 오케 줄을 자기 UUID 로 바꾸고 살아 있는 탭 전부에 「오케 바뀜 <새 UUID> — queue 재개」를 queue 한다. **옛 오케 탭에 승계 뒤 도착하는 queue**(사용자 직접 입력이 쌓인 queue 보다 먼저 처리되므로 생긴다)는 행동하지 않고 본문을 `docs/mail/오케.md` 에 옮긴 뒤 「새 오케로 넘김」 한 줄만 답한다. 쌓인 queue 개수는 화면에 보이지 않는다.
 
-**워커**: `docs/handoffs/<역할>.md` 에 같은 4절(+ 받은 브리프 요지 · 미커밋 파일 · 실행 중 서버). 오케에 경로를 queue 로 알리고 쓰기를 멈춘다. 새 탭 문장:
+**워커 · DM**: `docs/handoffs/<역할>.md` 에 같은 4절(+ 워커는 받은 브리프 요지 · 미커밋 파일 · 실행 중 서버 / DM 은 지금 단계 · 몇 통째 · 종료 조건 ○× · 실무자 답 대기 여부). **그 파일만 커밋한다**(`git add docs/handoffs/<역할>.md && git commit -m "handoff: <역할> — <한 줄>"`). 오케에 경로를 queue 로 알리고 쓰기를 멈춘다. 새 탭 문장(워커):
 ```
 AGENTS.md와 .agents/skills/handoff/SKILL.md, docs/handoffs/<역할>.md 를 읽고 <역할> 워커를 이어받아
 ```
-새 세션은 세션.txt 에서 옛 줄에 `(닫힘)` 을 붙이고 자기 줄을 더한 뒤 오케에 「이어받음」을 queue 한다.
+새 탭 문장(DM — 역할 문서를 같이 읽어야 한다. 문제 확정 직후가 넘기기 좋은 때다):
+```
+AGENTS.md와 harness/roles/DM.md, docs/handoffs/DM.md 를 읽고 DM 을 이어받아
+```
+새 세션은 세션.txt 에서 옛 줄에 `(닫힘)` 을 붙이고 자기 줄을 더한 뒤 오케에 「이어받음」을 queue 한다(`[<역할>→오케] 이어받음 <내 UUID>`). 이어받은 DM 은 단계 신호(「솔루션 DM 시작해」 등)가 올 때까지 기다린다.
 
 **compact 만 할 때**: 오케는 `docs/HANDOFF.md` 만 갱신하고 `/compact`. 직후 `AGENTS.md` + `harness/roles/오케.md` + `docs/과제설정.md` + HANDOFF + 현 단계 파일을 다시 읽는다. 워커는 compact 대신 새 탭.
 
