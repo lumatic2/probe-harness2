@@ -103,7 +103,7 @@ bash harness/tools/recon.sh > docs/RECON.txt 2>&1 || true
 END="${PROBE_END:-15:00}"; END_SRC="$([ -n "${PROBE_END:-}" ] && echo "PROBE_END" || echo "기본값 — 화면 남은 시간과 다르면 과제 시작 때 재계산")"
 EM=$(( 10#${END%%:*} * 60 + 10#${END##*:} ))
 at() { local m=$(( EM - $1 )); printf '%02d:%02d' $(( m / 60 )) $(( m % 60 )); }
-BASELINE="종료 $END($END_SRC) · 기준선(이쯤이면 원활하다는 참고, 강제 아님): DM 시작 $(at 310) · 문제 확정 $(at 275) · 솔루션 브리핑 OK $(at 240) · 솔루션 확정 $(at 225) · 설계 OK·구현 시작 $(at 200) · 얇은 결과 시연(첫 화면) $(at 140) · 구현·QA 끝 $(at 100) · 피드백 끝·동결 $(at 60) · final $(at 30) · 한 바퀴 묻고 답하기 끝 $(at 20) · 마지막 20분은 여유"
+BASELINE="종료 $END($END_SRC) · 기준선(이쯤이면 원활하다는 참고, 강제 아님): DM 시작 $(at 310) · 문제 확정 $(at 275) · 솔루션 브리핑 OK $(at 240) · 솔루션 확정 $(at 225) · 설계 OK·구현 시작 $(at 200) · 얇은 결과 시연(첫 화면) $(at 140) · 구현·QA 끝 $(at 100) · 피드백 끝·점검 기준 고정 $(at 60) · final $(at 30) · 한 바퀴 묻고 답하기 끝 $(at 20) · 마지막 20분은 여유"
 if [ -f docs/PLAN.md ]; then
   PYW="$(command -v python3 || command -v python || true)"
   [ -n "$PYW" ] && "$PYW" - "$BASELINE" <<'PY'

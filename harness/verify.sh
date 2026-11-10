@@ -33,7 +33,7 @@ elif [ $RC -eq 0 ]; then RES="PASS"
 else RES="FAIL($RC)"; RC=1
 fi
 { printf '# %s · %s · rc=%s · 주장: %s\n$ %s\n\n' "$TS" "$REV" "$RC" "$CLAIM" "$CMD"; echo "$OUT"; } > "$FULL"
-tail -n 1 "$LOG" | grep -q '^|' || printf "\n$TABLE" >> "$LOG"   # 그 사이 글로 적은 절(기대값·동결 해시 등)이 있으면 표를 새로 연다
+tail -n 1 "$LOG" | grep -q '^|' || printf "\n$TABLE" >> "$LOG"   # 그 사이 글로 적은 절(기대값·점검 기준 고정 해시 등)이 있으면 표를 새로 연다
 printf '| %s | `%s` | %s | `%s` | **%s** | `%s` |\n' "$TS" "$REV" "$CLAIM" "$CMD" "$RES" "$FULL" >> "$LOG"
 echo "$OUT" | tail -n 20
 echo "── verify: $RES ($TS · $REV) → $LOG · 전체 $FULL"
