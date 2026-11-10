@@ -42,7 +42,7 @@ UI는 실제 업무의 입력·판단·행동·근거를 담는 틀이다. 먼�
 4. 과제가 더 요구하면 `server/auth.mjs` 만 바꾼다: 세션 영속(data/store) · 비밀번호 해시 · 외부 SSO. 화면·API 계약(`auth-login/logout/me`, `{user:{id,name,role}}`)은 그대로.
 5. **빠른 로그인**: `.env` 에 `AUTH_QUICK=1` 이면 로그인 화면 아래에 `AUTH_USERS` 의 계정마다 「○○로 로그인」 버튼이 뜬다(예: 운영자로 로그인 · 사용자로 로그인). 누르면 비밀번호 없이 그 계정으로 들어간다 — QA·시연에서 역할을 바로 바꿔 보는 용도다. 배선은 서버 `auth.mjs`(`quick` 목록은 로그인 전 `auth-me` 에, 로그인은 `auth-login` 에 `{quick:id}`) · 화면 `lib/auth.tsx` 의 `quick`·`quickLogin` · `pages/login.tsx` 한 블록. 버튼 글자는 `ROLE_LABEL` 의 역할 이름을 쓴다 — 역할을 더하면 `AUTH_USERS` 에 계정을 더하고 `ROLE_LABEL` 에 이름을 더하면 버튼이 따라 생긴다. 목록에 비밀번호는 실리지 않는다. 과제가 「실제 로그인만」을 요구하면 `AUTH_QUICK=0`.
 6. 세션은 쿠키와 `Authorization: Bearer` 두 통로로 받는다. 응시 환경 Browser 는 앱을 다른 사이트의 틀 안에 띄워 쿠키가 돌아오지 않을 수 있어서다(증상·가르는 법은 `harness/guides/BROWSER.md` 「로그인 직후 다시 로그인 필요가 뜨면」). 화면 쪽은 `src/lib/session-fetch.ts` 가 `fetch('/api/…')` 에 토큰을 붙인다 — `fetch` 를 거치지 않는 요청(XHR·EventSource·링크 내려받기)을 새로 쓰지 않는다.
-7. 검사: `node --test server/*.test.mjs` 에 auth 테스트가 들어 있다. 통합 워커는 로그인 전 `/api/<이름>` 401 · 사용자 역할로 POST 403 · 운영자 로그인 뒤 200 을 E2E 에 넣는다.
+7. 검사: `node --test server/*.test.mjs` 에 auth 테스트가 들어 있다. 검증 워커는 로그인 전 `/api/<이름>` 401 · 사용자 역할로 POST 403 · 운영자 로그인 뒤 200 을 E2E 에 넣는다.
 
 ## 데이터셋·실행·그래프 연결 (최적화·배정·계산 엔진형 과제)
 1. domain.json 에 `"datasets": {"title": "데이터셋"}` · `"run": {"title": "계획 생성", "params": [{"key":"days","label":"계획 기간","type":"number","default":5,"unit":"일","min":1,"max":28}, …]}` · `"graph": {"title": "노드 그래프", "hubLabel": "거점", "nodeLabel": "지점"}` 을 넣으면 세 메뉴가 켜진다.
@@ -182,7 +182,7 @@ Python 등 업무 코드는 **src/ui/data/result-alarm.json**에 아래 형식�
 - 사이드바 하단 「설정」은 화면 설정 시트(글자 크기·표 밀도·기본 기간·시작 화면, `lib/prefs.ts`)다 — 규칙 기준값은 작업 메뉴의 「기준값 설정」(#/settings). 도움말 문구는 domain.json `help`, 데이터 기준·연락처는 과제에 맞게 고친다.
 
 ### 최종 검토 전에 제품에서 미사용 부품 제거
-오케가 M5 검토 기준을 고정하기 전에 수행한다. 키트 원본을 지우는 작업이 아니라 제출 제품을 정리하는 작업이다.
+오케가 M6 점검 기준 커밋을 고정(동결)하기 전에 수행한다. 키트 원본을 지우는 작업이 아니라 제출 제품을 정리하는 작업이다.
 1. PLAN 요구와 연결된 페이지·위젯·API·데이터만 남길 목록을 정한다. 개발용 widgets/InteractionGallery, 다른 도메인 견본, 가상 사용자·연락처·알림·소개 문구를 대조한다.
 2. 메뉴만 숨기지 않는다. `lib/pages.ts` 의 SCREENS 줄과 `src/pages/` 의 그 파일(파일이 남아 있으면 번들에 들어간다), import.meta.glob에 잡히는 다른 도메인/문서, 사용하지 않는 API handler·자산·의존성까지 참조를 확인해 제품에서 제거한다. 공통 컴포넌트는 사용하는 화면이 하나라도 있으면 보존한다. 런타임 동적 경로를 단순 텍스트 검색만으로 미사용 판정하지 않는다.
 3. 의존성을 제거했으면 package/lockfile을 함께 갱신한다. 과제 원본·검증 증거·라이선스·필수 제출 파일은 보존한다. 원본 키트 사본은 제품과 구별하고 제출 규칙에 따라 포함 여부를 결정한다.
