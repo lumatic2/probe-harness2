@@ -57,7 +57,7 @@ export function Tour({ steps, seenKey, auto = true }: { steps: TourStep[]; seenK
       if (stop) return
       const el = (() => { try { return document.querySelector(step.target) } catch { return null } })()
       const b = visibleBox(step.target)
-      if (el && b) { el.scrollIntoView({ block: b.h > window.innerHeight * 0.55 ? 'start' : 'center', inline: 'nearest' }); if (b.h > window.innerHeight * 0.55) window.scrollBy(0, -72); requestAnimationFrame(() => { if (!stop) setBox(visibleBox(step.target)) }); return }
+      if (el && b) { el.scrollIntoView({ block: b.h > window.innerHeight * 0.55 ? 'start' : 'center', inline: 'nearest' }); if (b.h > window.innerHeight * 0.55) (el.closest('[data-scroll]') ?? document.scrollingElement)?.scrollBy(0, -16); requestAnimationFrame(() => { if (!stop) setBox(visibleBox(step.target)) }); return }
       if (++tries > 12) { const to = index + dir.current; if (to < 0 || to >= steps.length) finish(); else setIndex(to); return }
       setTimeout(find, 120)
     }

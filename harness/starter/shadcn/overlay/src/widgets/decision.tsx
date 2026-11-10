@@ -1,6 +1,6 @@
 // decision.tsx — 결정 부품 D1~D5. 「AI 가 제안하고, 사람이 최종 판단한다」를 화면에 보이게 하는 묶음.
 // D1 근거 꼬리표 · D2 현행→제안 비교 · D3 거친 단계 · D4 결정 바(기본 승인·수정·반려 — options 로 과제의 말로 바꾼다) · D5 결정 기록.
-// 전부 props 로 받은 것만 그린다. 저장은 onDecide 를 받은 쪽이 한다(스타터에서는 form → saveDecision → decisions API, INTEGRATION.md 「결정 부품 연결」).
+// 전부 props 로 받은 것만 그린다. 저장은 onDecide 를 받은 쪽이 한다(스타터에서는 form → saveDecision → decisions API, INTEGRATION-화면.md 「결정 부품 연결」).
 // 규칙: 숫자에는 근거 종류(측정·예측·가정)를 붙인다 · 반려와 수정에는 사유를 받는다 · 성공 표시는 저장이 끝난 뒤에만 · 색만으로 구분하지 않고 글자를 같이 쓴다.
 import { useId, useState, type ReactNode } from 'react'
 import { ArrowRightIcon, CheckIcon, CircleAlertIcon, CircleDashedIcon } from 'lucide-react'
@@ -105,7 +105,7 @@ export type VerdictOption = { value: string; label: string; needReason?: boolean
 export const DEFAULT_VERDICTS: VerdictOption[] = [{ value: 'approve', label: '승인', tone: 'ok' }, { value: 'revise', label: '수정', needReason: true }, { value: 'reject', label: '반려', needReason: true, tone: 'urgent' }]
 export type Decision = { verdict: Verdict; reason: string }
 const labelOf = (options: VerdictOption[], v: string) => options.find((o) => o.value === v)?.label ?? v
-export function DecisionBar({ proposal, confidence, basis, onDecide, canDecide = true, decided, options = DEFAULT_VERDICTS }: {
+export function DecisionBar({ proposal, confidence, basis, onDecide, canDecide = true, decided, options = DEFAULT_VERDICTS, sourceLabel = 'AI 제안', extra, onReopen }: {
   proposal: string            // AI·솔버가 낸 제안 한 문장
   confidence?: string         // 「높음 · 근거 3건 일치」 같은 글자(숫자만 두지 않는다)
   basis?: ReactNode           // 근거(접힘 안에 넣을 내용 — 표·TraceSteps·BeforeAfter)
@@ -113,6 +113,9 @@ export function DecisionBar({ proposal, confidence, basis, onDecide, canDecide =
   canDecide?: boolean         // 쓰기 권한(auth 의 canWrite) — 없으면 보기만
   decided?: { verdict: Verdict; by: string; at: string; reason?: string } | null // 이미 결정된 건
   options?: VerdictOption[]   // 판정 선택지(기본 승인·수정·반려)
+  sourceLabel?: string        // 제안을 낸 쪽의 이름: 'AI 제안'(기본) · '규칙 제안' · '솔버 제안'. 누가 낸 제안인지 속이지 않는다
+  extra?: ReactNode           // 결정과 같이 받아야 하는 칸(조치 소요 시간 등). 값은 넘기는 쪽이 들고 있다가 onDecide 에서 같이 저장한다
+  onReopen?: () => void       // 주면 결정된 뒤에 「다시 결정」 버튼이 생긴다(결정을 고칠 수 있는 업무에서만)
 }) {
   const [verdict, setVerdict] = useState<Verdict | ''>('')
   const [reason, setReason] = useState('')
@@ -132,7 +135,7 @@ export function DecisionBar({ proposal, confidence, basis, onDecide, canDecide =
   return (
     <div className="flex flex-col gap-3 rounded-lg border p-4" data-decision-bar>
       <div className="flex flex-wrap items-center gap-2">
-        <Badge variant="secondary">AI 제안</Badge>
+        <Badge variant="secondary">{sourceLabel}</Badge>
         {confidence ? <span className="text-xs text-muted-foreground">신뢰도: {confidence}</span> : null}
       </div>
       <p className="text-sm font-medium">{proposal}</p>
@@ -144,7 +147,7 @@ export function DecisionBar({ proposal, confidence, basis, onDecide, canDecide =
       ) : null}
       <div className="border-t pt-3">
         {decided ? (
-          <p className="text-sm"><span className="font-semibold">사람의 결정: {labelOf(options, decided.verdict)}</span><span className="text-muted-foreground"> · {decided.by} · {decided.at}{decided.reason ? ` · 사유: ${decided.reason}` : ''}</span></p>
+          <div className="flex flex-wrap items-center gap-3"><p className="text-sm"><span className="font-semibold">사람의 결정: {labelOf(options, decided.verdict)}</span><span className="text-muted-foreground"> · {decided.by} · {decided.at}{decided.reason ? ` · 사유: ${decided.reason}` : ''}</span></p>{onReopen && canDecide ? <Button variant="outline" size="sm" onClick={onReopen}>다시 결정</Button> : null}</div>
         ) : !canDecide ? (
           <p className="text-sm text-muted-foreground">결정은 쓰기 권한이 있는 계정만 할 수 있습니다. 지금은 제안과 근거만 볼 수 있습니다.</p>
         ) : (
@@ -156,9 +159,12 @@ export function DecisionBar({ proposal, confidence, basis, onDecide, canDecide =
               </ToggleGroup>
             </div>
             <Reveal open={!!verdict}>
-              <div className="flex flex-col gap-1.5 p-0.5">
+              <div className="flex flex-col gap-3 p-0.5">
+              {extra}
+              <div className="flex flex-col gap-1.5">
                 <Label htmlFor={`${id}-reason`}>{verdict && needReason ? `${labelOf(options, verdict)} 사유 (필수)` : '메모 (선택)'}</Label>
                 <Textarea id={`${id}-reason`} value={reason} onChange={(e) => setReason(e.target.value)} maxLength={500} rows={2} aria-invalid={!!error && needReason && !reason.trim()} placeholder={needReason ? '왜 이렇게 결정하는지, 무엇을 바꿔 적용하는지' : ''} />
+              </div>
               </div>
             </Reveal>
             {error ? <p role="alert" className="text-sm text-destructive">{error}</p> : null}
@@ -185,8 +191,8 @@ export function AuditLog({ entries, empty = '아직 결정 기록이 없습니�
       </ToggleGroup>
       {shown.length ? (
         <div className="overflow-x-auto">
-          <Table>
-            <TableHeader><TableRow><TableHead>시각</TableHead><TableHead>결정한 사람</TableHead><TableHead>대상</TableHead><TableHead>결정</TableHead><TableHead>사유·제안</TableHead></TableRow></TableHeader>
+          <Table className="table-fixed" style={{ minWidth: 640 }}>{/* 열 폭 고정 — 거르기를 바꿔도 열이 움직이지 않는다 */}
+            <TableHeader><TableRow><TableHead className="w-28">시각</TableHead><TableHead className="w-28">결정한 사람</TableHead><TableHead className="w-28">대상</TableHead><TableHead className="w-20">결정</TableHead><TableHead>사유·제안</TableHead></TableRow></TableHeader>
             <TableBody>
               {shown.map((e) => (
                 <TableRow key={e.id} className={fresh.has(e.id) ? 'sk-flash' : ''}>
@@ -194,7 +200,7 @@ export function AuditLog({ entries, empty = '아직 결정 기록이 없습니�
                   <TableCell className="whitespace-nowrap">{e.by}</TableCell>
                   <TableCell className="whitespace-nowrap">{e.target}</TableCell>
                   <TableCell><Badge variant={options.find((o) => o.value === e.verdict)?.tone === 'ok' ? 'secondary' : 'outline'} className={options.find((o) => o.value === e.verdict)?.tone === 'urgent' ? 'sk-urgent' : ''}>{labelOf(options, e.verdict)}</Badge></TableCell>
-                  <TableCell className="min-w-56 text-sm">{e.reason || <span className="text-muted-foreground">—</span>}{e.proposal ? <div className="text-xs text-muted-foreground">제안: {e.proposal}</div> : null}</TableCell>
+                  <TableCell className="whitespace-normal text-sm">{e.reason || <span className="text-muted-foreground">—</span>}{e.proposal ? <div className="text-xs text-muted-foreground">제안: {e.proposal}</div> : null}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

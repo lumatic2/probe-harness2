@@ -1,15 +1,20 @@
-// ③ 상세 #/item/<ID> — 정보 + 근거(원 데이터 행·계산 규칙) + 같은 대상의 최근 건 + 변경 이력(/api/decisions-<도메인>)
+// ③ 상세 #/item/<ID> — 정보 + 결정 바(제안을 보고 사람이 판정을 남긴다) + 근거(원 데이터 행·계산 규칙) + 같은 대상의 최근 건 + 변경 이력(/api/decisions-<도메인>)
+// 결정 상자는 components/item-decision.tsx(목록의 요약 창과 같이 쓴다).
 import { AlertCircleIcon } from 'lucide-react'
 import { LimitNote, Section } from '@/components/page-parts'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { ItemDecision } from '@/components/item-decision'
 import { useApp } from '@/lib/app-context'
 import { cell, colLabel, ctx, ddayText, findRow, idOf, rawLines, relatedRows, rulesFor, shortTs, titleOf, tpl } from '@/lib/derive'
 import { AlertList } from '@/widgets/blocks'
 import { ToneBadge, WidgetCard } from '@/widgets/panel'
+import { useFreshIds } from '@/widgets/parts'
+
 
 export default function Item() {
   const { route, link, decisions } = useApp()
+  const fresh = useFreshIds(decisions.map((x) => x.id))
   const d = ctx.d, R = ctx.R
   const a = findRow(ctx, route.id ?? '')
   if (!a) {
@@ -40,6 +45,9 @@ export default function Item() {
           <span className="text-sm text-muted-foreground">{meta}</span>
         </div>
       </Section>
+      <Section>
+        <ItemDecision id={String(idOf(ctx, a))} />
+      </Section>
       <div className="grid grid-cols-1 gap-4 px-4 lg:px-6 @3xl/main:grid-cols-2">
         <WidgetCard title="근거 · 원 데이터">
           <Table><TableBody>{raw.map(([k, v]) => <TableRow key={k}><TableHead className="w-32 font-normal text-muted-foreground">{colLabel(ctx, k)}</TableHead><TableCell>{v}</TableCell></TableRow>)}</TableBody></Table>
@@ -58,7 +66,7 @@ export default function Item() {
               <TableHeader><TableRow><TableHead>시각</TableHead><TableHead>담당</TableHead>{fields.map((f) => <TableHead key={f.key} className={f.type === 'number' ? 'text-right' : ''}>{f.label.replace(/\s*\(.*\)$/, '')}</TableHead>)}</TableRow></TableHeader>
               <TableBody>
                 {[...hist].reverse().map((x) => (
-                  <TableRow key={x.id}>
+                  <TableRow key={x.id} className={fresh.has(x.id) ? 'sk-flash' : ''}>
                     <TableCell className="whitespace-nowrap tabular-nums">{shortTs(x.ts)}</TableCell><TableCell className="whitespace-nowrap">{x.who}</TableCell>
                     {fields.map((f) => <TableCell key={f.key} className={f.type === 'number' ? 'text-right tabular-nums' : f.type === 'textarea' ? 'min-w-40 whitespace-normal break-words' : ''}>{x[f.key]}</TableCell>)}
                   </TableRow>

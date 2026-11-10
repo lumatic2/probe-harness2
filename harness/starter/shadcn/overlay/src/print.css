@@ -14,6 +14,9 @@
   [data-filter], [data-sonner-toaster], [data-slot="sidebar-trigger"] { display: none !important; }
   [data-slot="sidebar-wrapper"] { display: block !important; min-height: 0 !important; background: #ffffff !important; }
   [data-slot="sidebar-inset"] { margin: 0 !important; border-radius: 0 !important; box-shadow: none !important; background: #ffffff !important; min-height: 0 !important; }
+  /* 화면 틀이 「본문만 스크롤」이라 인쇄 때는 높이·넘침 잠금을 전부 푼다(안 풀면 첫 화면만 찍힌다) */
+  html, body, #root, [data-slot="sidebar-wrapper"], [data-slot="sidebar-inset"], [data-slot="sidebar-inset"] > div, [data-scroll] { height: auto !important; max-height: none !important; overflow: visible !important; display: block !important; }
+  [data-chat-dock], [data-tour-root] { display: none !important; }
   [data-page] { padding-block: 0 !important; gap: 12px !important; }
 
   /* 카드: 얇은 테두리, 그림자 없음, 쪽 중간에서 안 잘림 */

@@ -83,20 +83,34 @@ cat "$HERE/sk-theme.css" >> src/index.css
 grep -q '^VITE_DEV_MENU=' .env.local 2>/dev/null || echo 'VITE_DEV_MENU=1' >> .env.local
 step "타입 검사 + 빌드"; npx tsc -b; npx vite build >/dev/null
 mkdir -p data/store
-# 응시 환경 Browser 와 같은 조건(다른 Host)으로 빌드본 서버를 한 번 띄워 본다 — 여기서 200 이 아니면 Browser 에서 흰 화면이다. 점검용 포트(기본 3999)만 쓰고 자기가 띄운 PID 만 끈다. 실패해도 생성은 끝난 것으로 두고 경고만 낸다.
+# 응시 환경 Browser 와 같은 조건(다른 Host)으로 빌드본 서버를 한 번 띄워 본다 — 여기서 200 이 아니면 Browser 에서 흰 화면이다. 실패해도 생성은 끝난 것으로 두고 경고만 낸다.
+# 포트: 비어 있는 포트를 그때 고른다(CHECK_PORT 를 주면 그 포트 — 이미 쓰이고 있으면 「포트 사용 중」이라고 가려 말하고 건너뛴다. 앱이 틀린 것이 아니다).
+# 서버는 vite 를 node 로 직접 띄운다(npx 를 거치면 $! 가 npx 라서, 끌 때 진짜 서버가 남는다). 끝나면 자기가 띄운 그 PID 만 끈다.
 step "미리보기 점검 — 다른 Host(*.e2b.app)로 / 와 /api/health"
-CHECK_PORT="${CHECK_PORT:-3999}"
-PORT="$CHECK_PORT" npx vite preview >/tmp/make-preview-check.log 2>&1 &
-CHECK_PID=$!
-CHECK_OK=""
-for _ in 1 2 3 4 5 6 7 8 9 10; do
-  sleep 1
-  A=$(curl -s -m 3 -o /dev/null -w "%{http_code}" -H "Host: check.e2b.app" "http://127.0.0.1:$CHECK_PORT/" 2>/dev/null || true)
-  B=$(curl -s -m 3 -o /dev/null -w "%{http_code}" -H "Host: check.e2b.app" "http://127.0.0.1:$CHECK_PORT/api/health" 2>/dev/null || true)
-  if [ "$A" = "200" ] && [ "$B" = "200" ]; then CHECK_OK=1; break; fi
-done
-kill "$CHECK_PID" 2>/dev/null || true
-if [ -n "$CHECK_OK" ]; then echo "  미리보기 점검 통과 — 화면 200 · API 200"
-else echo "  ⚠ 미리보기 점검 실패 — 화면 ${A:-응답 없음} · API ${B:-응답 없음}. harness/guides/BROWSER.md 「흰 화면이면」 순서로 가른다(로그: /tmp/make-preview-check.log)"; fi
+port_busy() { node -e "const s=require('net').createServer();s.once('error',()=>process.exit(0));s.once('listening',()=>s.close(()=>process.exit(1)));s.listen(Number(process.argv[1]),'0.0.0.0')" "$1"; }
+if [ -n "${CHECK_PORT:-}" ]; then
+  if port_busy "$CHECK_PORT"; then CHECK_SKIP="포트 $CHECK_PORT 사용 중"; fi
+else
+  CHECK_PORT="$(node -e "const s=require('net').createServer();s.listen(0,'0.0.0.0',()=>{const p=s.address().port;s.close(()=>console.log(p))})")"
+fi
+if [ -n "${CHECK_SKIP:-}" ]; then
+  echo "  미리보기 점검 건너뜀 — $CHECK_SKIP(다른 프로세스가 쓰고 있다. 앱 문제가 아니다). CHECK_PORT 를 빼고 다시 돌리면 빈 포트를 고른다."
+else
+  PORT="$CHECK_PORT" node node_modules/vite/bin/vite.js preview >/tmp/make-preview-check.log 2>&1 &
+  CHECK_PID=$!
+  CHECK_OK=""; A=""; B=""
+  for _ in 1 2 3 4 5 6 7 8 9 10; do
+    sleep 1
+    kill -0 "$CHECK_PID" 2>/dev/null || break   # 서버가 스스로 죽었으면(포트 충돌 등) 더 기다리지 않는다
+    A=$(curl -s -m 3 -o /dev/null -w "%{http_code}" -H "Host: check.e2b.app" "http://127.0.0.1:$CHECK_PORT/" 2>/dev/null || true)
+    B=$(curl -s -m 3 -o /dev/null -w "%{http_code}" -H "Host: check.e2b.app" "http://127.0.0.1:$CHECK_PORT/api/health" 2>/dev/null || true)
+    if [ "$A" = "200" ] && [ "$B" = "200" ]; then CHECK_OK=1; break; fi
+  done
+  kill "$CHECK_PID" 2>/dev/null || true
+  wait "$CHECK_PID" 2>/dev/null || true
+  if [ -n "$CHECK_OK" ]; then echo "  미리보기 점검 통과 — 화면 200 · API 200 (점검 포트 $CHECK_PORT, 서버는 껐다)"
+  elif grep -qi "already in use\|EADDRINUSE" /tmp/make-preview-check.log 2>/dev/null; then echo "  미리보기 점검 건너뜀 — 포트 $CHECK_PORT 사용 중(다른 프로세스가 쓰고 있다. 앱 문제가 아니다)."
+  else echo "  ⚠ 미리보기 점검 실패 — 화면 ${A:-응답 없음} · API ${B:-응답 없음}. harness/guides/BROWSER.md 「흰 화면이면」 순서로 가른다(로그: /tmp/make-preview-check.log)"; fi
+fi
 echo "  개발 메뉴 켜짐(.env.local VITE_DEV_MENU=1): 왼쪽 메뉴에 「위젯 모음」이 보인다. 제출 전에 그 줄을 지우고 다시 빌드한다."
 step "끝 — cd $DIR && npx vite preview (개발 서버는 Browser 에 노출하지 않는다) · Browser: 포트 칸 3000(환경변수 PORT 로 변경), 경로 칸 / · 기동 확인 GET /api/health"

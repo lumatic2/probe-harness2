@@ -111,7 +111,7 @@ export function ChatPanel({ context, suggestions = [], title = 'AI에게 묻기'
 }
 
 // ── AI 대화 패널: 머리줄 오른쪽 둥근 버튼(ChatButton)으로 여닫는다. 패널(ChatDock)은 화면 오른쪽에 고정된 별도 영역이다 — 본문이 스크롤돼도 입력창은 제자리에 있고, 패널 안의 대화만 따로 스크롤된다.
-// 자리는 머리줄 아래다: 머리줄을 덮지 않고, 위·아래·오른쪽에 여백을 둔 둥근 카드로 뜬다. 열리면 App.tsx 가 본문에 그 폭만큼 오른쪽 여백을 줘서 본문이 좁아진다(덮지 않는다. 표·차트를 보면서 묻는다).
+// 자리는 머리줄 아래, 본문 오른쪽의 칸이다(App.tsx 가 본문과 같은 줄에 둔다). 머리줄을 덮지 않고, 여백을 둔 둥근 카드로 보인다. 열리면 본문이 그 폭만큼 좁아진다(덮지 않는다. 표·차트를 보면서 묻는다).
 // 도메인 설정(domain.json)에 chat 키가 있을 때만 보인다. 열림 상태는 탭 안에서 기억한다(페이지를 옮겨도 열린 채). 좁은 화면(lg 미만)에서는 밀어낼 자리가 없어 화면 전체를 덮는다.
 // 버튼 그림: src/assets/ai-mark.svg(또는 .png)를 두면 그것을, 없으면 반짝임 아이콘. 상표가 있는 로고는 쓸 권리를 확인하고 넣는다.
 const markFiles = import.meta.glob('../assets/ai-mark.{svg,png}', { eager: true, query: '?url', import: 'default' }) as Record<string, string>
@@ -162,7 +162,7 @@ export function ChatButton() {
   )
 }
 
-// 화면 오른쪽 고정 패널. 넓은 화면: 머리줄 아래에서 시작해 아래 여백까지, 폭 23rem 의 둥근 카드. 닫혀 있으면 안 보이고 열리면 150ms 로 나타난다(본문 쪽 여백은 App.tsx 의 CHAT_GAP).
+// 본문 옆 칸. 넓은 화면: 머리줄 아래에서 화면 아래까지, 폭 23rem 의 둥근 카드. 닫혀 있으면 폭 0, 열리면 150ms 로 넓어지며 본문을 민다. 본문만 스크롤되므로 패널은 늘 제자리다.
 // 좁은 화면(lg 미만)에서는 밀어낼 자리가 없어 화면 전체를 덮는다.
 export function ChatDock() {
   const cfg = useMemo(() => chatConfig(ctx.d), [])
@@ -178,8 +178,9 @@ export function ChatDock() {
   if (!cfg) return null
   return (
     <aside data-chat-dock data-open={open} inert={!open} aria-label={cfg.title}
-      className={`fixed z-40 flex flex-col bg-background transition-[opacity,transform] duration-150 ease-out max-lg:inset-0 lg:bottom-5 lg:right-5 lg:top-[calc(var(--header-height)+1.25rem)] lg:w-[23rem] lg:rounded-xl lg:border lg:shadow-sm ${open ? 'translate-x-0 opacity-100' : 'pointer-events-none translate-x-3 opacity-0'}`}>
-      <div className="flex min-h-0 flex-1 flex-col gap-3 p-4">
+      className={`flex shrink-0 flex-col overflow-hidden bg-background transition-[width,opacity] duration-150 ease-out max-lg:fixed max-lg:inset-0 max-lg:z-40 ${open ? 'w-full opacity-100 lg:w-[24.5rem]' : 'w-0 opacity-0 max-lg:hidden'}`}>
+      {/* 안쪽 상자는 폭이 정해져 있어 열리고 닫히는 동안 글자가 다시 접히지 않는다. 넓은 화면에서는 여백을 둔 둥근 카드. */}
+      <div className="flex min-h-0 flex-1 flex-col gap-3 p-4 lg:m-3 lg:w-[23rem] lg:rounded-xl lg:border lg:shadow-xs">
         <div className="flex items-center justify-between gap-2">
           <h2 className="flex items-center gap-2 text-base font-semibold"><AiMark className="size-4" />{cfg.title}</h2>
           <Button variant="ghost" size="icon" className="size-8" onClick={() => setChatOpen(false)} aria-label="AI 대화 패널 닫기" data-chat-close><XIcon className="size-4" /></Button>

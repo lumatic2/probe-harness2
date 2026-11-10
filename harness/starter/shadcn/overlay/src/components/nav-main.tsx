@@ -22,7 +22,10 @@ type QuickRow = Record<string, string> & { id: string; ts: string }
 // 모달형 빠른 등록 — 저장물(/api/quick-<도메인>)은 이 버튼이 그려질 때만 읽는다.
 function QuickDialogButton({ label, trigger }: { label: string; trigger: React.ReactNode }) {
   const quick = useStore<QuickRow[]>(`quick-${domainName}`, [])
-  return <QuickAddDialog trigger={trigger} title={label} fields={QUICK_FIELDS} onSubmit={async (v) => { await quick.save([...quick.data, { ...v, id: `q-${Date.now()}`, ts: new Date().toISOString() }]) }} />
+  return <QuickAddDialog trigger={trigger} title={label} fields={QUICK_FIELDS} onSubmit={async (v) => {
+    try { await quick.save([...quick.data, { ...v, id: `q-${Date.now()}`, ts: new Date().toISOString() }]) }
+    catch (e) { throw new Error((e as Error).message === '403' ? '쓰기 권한이 있는 계정만 등록할 수 있습니다.' : `저장하지 못했습니다(${(e as Error).message}). 입력은 그대로 있습니다.`) }
+  }} />
 }
 
 export function NavMain({ items, activeKey }: { items: { key: string; title: string; url: string; icon: React.ReactNode }[]; activeKey: string }) {

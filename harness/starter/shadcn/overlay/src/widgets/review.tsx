@@ -1,6 +1,6 @@
 // review.tsx — 검토 부품 R1~R8. 계산 결과를 사람이 믿고 승인할 수 있게 하는 묶음. 전부 props 로 받은 것만 그린다.
 // R1 결과 비교(현재 운영 ↔ 새 결과) · R2 가장 나빠지는 건 · R3 계산에서 뺀 기록 · R4 용어 정의 · R5 출처·기준 꼬리표 · R6 비교표(행×열, 칸마다 출처) · R7 출처별 숫자 나란히 · R8 퀴즈 + 학습 경로.
-// 실행 화면(#/run)은 엔진 결과에 compare · worst · excluded 가 있으면 R1~R3 를 자동으로 그린다(INTEGRATION.md 「검토 부품 연결」).
+// 실행 화면(#/run)은 엔진 결과에 compare · worst · excluded 가 있으면 R1~R3 를 자동으로 그린다(INTEGRATION-화면.md 「검토 부품 연결」).
 // 규칙: 평균만 보이지 않는다(가장 나쁜 건을 같이) · 뺀 것은 건수와 이유를 보인다 · 숫자마다 어떤 기준(정의·단위·기간·출처)인지 그 자리에서 확인된다.
 import { useState, type ReactNode } from 'react'
 import { CheckIcon, LockIcon, XIcon } from 'lucide-react'

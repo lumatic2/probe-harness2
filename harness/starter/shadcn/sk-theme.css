@@ -50,7 +50,8 @@ html[data-density="compact"] [data-slot="card-content"] { padding-block: 0.5rem;
 @media (prefers-reduced-motion: reduce) { .sk-transition { transition: none; } .sk-transition-bar > span { animation: none; width: 100%; } }
 
 /* 스크롤바 자리를 항상 비워 둔다 — 내용이 길어져 스크롤바가 생기거나 사라질 때 화면이 옆으로 흔들리지 않는다. */
-html { scrollbar-gutter: stable; }
+/* 화면 틀이 「본문만 스크롤」이라 창에는 스크롤바가 없다. 스크롤바 자리는 본문 칸(.sk-scroll)에 둔다. */
+.sk-scroll { scrollbar-gutter: stable; }
 /* 메뉴·선택·모달·시트가 열리면 Radix 가 본문 스크롤을 잠그면서 「사라진 스크롤바만큼」 body 에 오른쪽 여백을 준다.
    우리는 스크롤바 자리를 항상 비워 두므로(위 줄) 사라지는 것이 없다 — 그 여백이 그대로 화면을 왼쪽으로 민다. 여백을 0 으로 되돌린다.
    (원인: react-remove-scroll-bar 가 넣는 body[data-scroll-locked] { margin-right: <스크롤바 폭>px !important }) */

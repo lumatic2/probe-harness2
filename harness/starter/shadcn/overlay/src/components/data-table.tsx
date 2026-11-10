@@ -61,6 +61,8 @@ import {
   addDays, buildHash, cell as cellOf, colLabel, csvFileName, ctx, dateOf, display, distinct, idOf, makeNotices, matchWhere, mmdd, noticeFileName,
   rulesFor, shortTs, tableCols, titleOf, toCsv, tpl,
 } from '@/lib/derive'
+import { ItemDecision } from '@/components/item-decision'
+import { columnWidths } from '@/lib/table-widths'
 import { buildReportWorkbook, buildXlsx, downloadXlsx, filterParts, xlsxFileName } from '@/domain/xlsx.mjs'
 import { ToneBadge } from '@/widgets/panel'
 
@@ -247,6 +249,20 @@ const columns: ColumnDef<typeof features, Rw>[] = [
   { id: 'actions', cell: ({ row }) => <RowMenu item={row.original} /> },
 ]
 const HIDEABLE = new Set(dataCols.map((c) => c.key).filter((k) => k !== R.id))
+
+// 열 폭은 데이터 전체(ctx.rows)로 한 번 정해 고정한다 — 쪽·탭·정렬·검색으로 보이는 행이 바뀌어도 열이 움직이지 않는다(lib/table-widths.ts).
+const COL_W = columnWidths(
+  dataCols.map((c) => ({
+    key: c.key,
+    label: c.label,
+    sortable: true,
+    text: (row: Record<string, unknown>) => (c.names ? `${row[c.key] ?? ''} ${c.names[String(row[c.key])] ?? ''}` : c.key === '_dday' || (c.type === 'enum' && c.badge) ? String(cellOf(ctx, row as Rw, c.key).text ?? '') : String(display(ctx, c.key, (row as Rw)[c.key]) ?? '')),
+    extra: c.key === R.id ? 22 : c.type === 'enum' && c.badge ? 34 : 0,
+    min: c.type === 'person' ? 136 : c.type === 'number' && c.editable ? 72 : 0,
+  })),
+  ctx.rows as Record<string, unknown>[],
+  { fixed: { drag: 32, select: 40, actions: 48 } },
+)
 
 function DraggableRow({ row }: { row: Row<typeof features, Rw> }) {
   const { transform, transition, setNodeRef, isDragging } = useSortable({ id: rid(row.original) })
@@ -480,12 +496,12 @@ export function DataTable({ rows, sort }: { rows: Rw[]; sort?: Actions['sort'] }
         <div className="relative flex flex-col gap-4 overflow-auto px-4 lg:px-6">
           <div className="overflow-hidden rounded-lg border">
             <DndContext collisionDetection={closestCenter} modifiers={[restrictToVerticalAxis]} onDragEnd={handleDragEnd} sensors={sensors} id={sortableId}>
-              <Table>
+              <Table className="table-fixed" style={{ minWidth: COL_W.minWidth }}>
                 <TableHeader className="sticky top-0 z-10 bg-muted">
                   {table.getHeaderGroups().map((headerGroup) => (
                     <TableRow key={headerGroup.id}>
                       {headerGroup.headers.map((header) => (
-                        <TableHead key={header.id} colSpan={header.colSpan}>
+                        <TableHead key={header.id} colSpan={header.colSpan} style={{ width: COL_W.percent[header.column.id] }}>
                           {header.isPlaceholder ? null : <FlexRender header={header} />}
                         </TableHead>
                       ))}
@@ -572,7 +588,7 @@ function NoticeDrawer({ text, count, onClose }: { text: string; count: number; o
 
 const chartConfig = { n: { label: d.entity.plural, color: 'var(--chart-1)' } } satisfies ChartConfig
 
-// 상세 Drawer — 원본 TableCellViewer: 미니 차트 + 요약 + 편집 폼. 내용은 #/item 상세의 요약.
+// 요약 창(Drawer) — 결정 상자 + 미니 차트 + 요약 + 편집 폼. 내용은 #/item 상세의 요약이고, 결정은 여기서 바로 한다.
 function RowDrawer({ item, onClose }: { item: Rw; onClose: () => void }) {
   const isMobile = useIsMobile()
   const { update } = React.useContext(ActionsCtx)
@@ -610,6 +626,8 @@ function RowDrawer({ item, onClose }: { item: Rw; onClose: () => void }) {
           <DrawerDescription>{meta}</DrawerDescription>
         </DrawerHeader>
         <div className="flex flex-col gap-4 overflow-y-auto px-4 text-sm">
+          {/* 결정 상자가 맨 위 — 목록에서 한 건을 누르면 다른 화면으로 가지 않고 바로 결정한다(새로 추가한 미리보기 행은 저장 대상이 아니라 없다) */}
+          {item.__local ? null : <ItemDecision id={String(rid(item))} />}
           {!isMobile && (
             <>
               {rel ? (
@@ -657,7 +675,7 @@ function RowDrawer({ item, onClose }: { item: Rw; onClose: () => void }) {
           </form>
         </div>
         <DrawerFooter>
-          <Button onClick={save}>미리보기에 적용</Button>
+          <Button variant="outline" onClick={save}>미리보기에 적용</Button>{/* 이 창의 주 버튼은 위의 「결정 저장」 하나다 */}
           {item.__local ? null : <Button variant="outline" asChild><a href={`#/item/${rid(item)}`}>상세 열기</a></Button>}
           <DrawerClose asChild><Button variant="outline">닫기</Button></DrawerClose>
         </DrawerFooter>
