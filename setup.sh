@@ -98,12 +98,12 @@ fi
 
 # 3. 정찰 (환경 한 줄 — 복원 검증은 하지 않는다. 시작점 코드 검증은 구현 때 verify.sh 로)
 bash harness/tools/recon.sh > docs/RECON.txt 2>&1 || true
-# 3b. 시간 기준선 — 종료 시각 기본값 22:00(재응시 19:00 시작 + 과제 풀이 180분, 늦게 들어가도 연장 없음). PROBE_END=HH:MM 이 주어지면 그 값.
+# 3b. 시간 기준선 — 종료 시각 기본값 15:00(어림 — 09:30 시작 + 과제 풀이 330분, 확정값 아님). PROBE_END=HH:MM 이 주어지면 그 값.
 #     정본은 docs/과제설정.md 4절. 원문·화면과 다르면 오케가 과제 시작 때 고치고 PLAN 기준선을 재계산한다 — setup.sh 는 다시 돌리지 않는다.
-END="${PROBE_END:-22:00}"; END_SRC="$([ -n "${PROBE_END:-}" ] && echo "PROBE_END" || echo "기본값 — 화면 남은 시간과 다르면 과제 시작 때 재계산")"
+END="${PROBE_END:-15:00}"; END_SRC="$([ -n "${PROBE_END:-}" ] && echo "PROBE_END" || echo "기본값 — 화면 남은 시간과 다르면 과제 시작 때 재계산")"
 EM=$(( 10#${END%%:*} * 60 + 10#${END##*:} ))
 at() { local m=$(( EM - $1 )); printf '%02d:%02d' $(( m / 60 )) $(( m % 60 )); }
-BASELINE="종료 $END($END_SRC) · 기준선(이쯤이면 원활하다는 참고, 강제 아님): DM 시작 $(at 165) · 문제 확정 $(at 140) · 솔루션 브리핑 OK $(at 120) · 솔루션 확정·구현 시작 $(at 110) · 얇은 결과 시연 $(at 80) · 계획한 구현 끝 $(at 60) · 피드백 끝·동결 $(at 40) · final $(at 20) · 제출 버튼까지 여유 20분"
+BASELINE="종료 $END($END_SRC) · 기준선(이쯤이면 원활하다는 참고, 강제 아님): DM 시작 $(at 310) · 문제 확정 $(at 275) · 솔루션 브리핑 OK $(at 240) · 솔루션 확정 $(at 225) · 설계 OK·구현 시작 $(at 200) · 얇은 결과 시연(첫 화면) $(at 140) · 구현·QA 끝 $(at 100) · 피드백 끝·동결 $(at 60) · final $(at 30) · 한 바퀴 묻고 답하기 끝 $(at 20) · 마지막 20분은 여유"
 if [ -f docs/PLAN.md ]; then
   PYW="$(command -v python3 || command -v python || true)"
   [ -n "$PYW" ] && "$PYW" - "$BASELINE" <<'PY'
