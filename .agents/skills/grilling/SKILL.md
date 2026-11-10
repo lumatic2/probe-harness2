@@ -38,6 +38,6 @@ The session is done when the frontier is empty: every branch of the design tree 
 - **고정 제약은 선택 질문으로 만들지 않는다**: 확정된 금지사항 · 권한 없는 외부 전송 보류 · 화면 출발점(`harness/starter/shadcn/make.sh` 뼈대 — 「바닐라로 할까」 같은 선택지를 만들지 않는다).
 - **누가 정하나**: 사용자는 우선순위 · 사용 경험 · 절충 · 받아들일 한계. 근거 있는 일상 기술 선택은 오케가 추천하고, 사용자가 맡기면 위임을 기록해 닫는다 — 모듈 이름·라이브러리를 퀴즈로 만들지 않는다.
 - **기록**: 닫힌 결정마다 `$decision`, 내용은 점검표의 「적는 곳」(SOLUTION·ARCHITECTURE·PLAN). 별도 grilling 기록은 만들지 않는다. 앞 답이 바뀌면 거기 기댄 결정도 다시 연다.
-- **원문의 「Do not act until the user confirms」** 는 여기서 설계 브리핑 뒤 「설계 OK」다. 문서 마무리는 행동이 아니라 그 브리핑의 재료다. 스캐폴드·워커 위임은 「OK」 뒤.
+- **원문의 「Do not act until the user confirms」** 는 여기서 설계 브리핑 뒤 「설계 OK」다. 문서 마무리는 행동이 아니라 그 브리핑의 재료다. 스캐폴드·워커 위임은 「설계 OK」 뒤.
 
 출처: Matt Pocock, https://github.com/mattpocock/skills/blob/main/skills/productivity/grilling/SKILL.md (확인 2026-10-30). 설치된 원문 절차 전체를 보존하고 위 대회 맥락과 description만 개량했다. 원 라이선스는 LICENSE에 동봉한다. 원문과 충돌하는 실행 도구/문서 경로는 위 대회 적용을 따른다.

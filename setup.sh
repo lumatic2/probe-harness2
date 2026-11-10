@@ -26,7 +26,7 @@ DATA_FILES="$(printf '%s\n' "$ORIGIN" | grep -Ei '\.(csv|tsv|xlsx|xls|parquet|js
 in_dir='{ d=$0; if (sub(/\/[^\/]*$/, "", d) == 0) d="."; n[d]++; f[NR]=$0; g[NR]=d }'
 DATA_DIRS="$(printf '%s\n' "$DATA_FILES" | sed '/^$/d' | awk "$in_dir"' END { for (k in n) print k "|" n[k] }' | sort)"
 # 데이터가 아닌 원본은 파일마다 적고, 파일이 많은 폴더(10개 초과)만 한 줄로 묶는다
-ROOT_MD="$(printf '%s\n' "$ORIGIN" | grep -vxF -f <(printf '%s\n' "$DATA_FILES") | grep -vxF 'AGENTS.md' | sed '/^$/d' | awk "$in_dir"' END { for (i=1; i<=NR; i++) { if (n[g[i]] > 10 && g[i] != ".") { if (!s[g[i]]++) print g[i] "/ (파일 " n[g[i]] "개)" } else print f[i] } }' || true)"
+ROOT_MD="$(printf '%s\n' "$ORIGIN" | grep -vxF -f <(printf '%s\n' "$DATA_FILES" | grep '/' || true) | grep -vxF 'AGENTS.md' | sed '/^$/d' | awk "$in_dir"' END { for (i=1; i<=NR; i++) { if (n[g[i]] > 10 && g[i] != ".") { if (!s[g[i]]++) print g[i] "/ (파일 " n[g[i]] "개)" } else print f[i] } }' || true)"
 
 KEPT=""
 merge() {  # $1 = SRC 기준 상대 경로
@@ -60,8 +60,8 @@ for c in "$SRC"/* "$SRC"/.[!.]*; do
   case "$b" in .git|README.md|setup.sh|AGENTS.md) continue;; esac
   merge "$b"
 done
-if [ -n "$KEPT" ]; then echo "보존(과제 파일, 안 덮음):$KEPT"; fi
-CLASH="$(printf '%s' "$KEPT" | tr ' ' '\n' | grep -vxF '.gitignore' | sed '/^$/d' | tr '\n' ' ' || true)"
+if [ -n "$KEPT" ] && [ -z "$RERUN" ]; then echo "보존(과제 파일, 안 덮음):$KEPT"; fi
+CLASH="$(printf '%s' "$KEPT" | tr ' ' '\n' | grep -vxF -e '.gitignore' -e '.env.example' -e '.gitattributes' | sed '/^$/d' | tr '\n' ' ' || true)"
 CLASH_NOTE=""
 if [ -n "$CLASH" ] && [ -z "$RERUN" ]; then CLASH_NOTE="   이름 충돌(과제 파일을 보존해 킷 파일이 안 깔림): ${CLASH}
 "; fi
@@ -155,5 +155,5 @@ ${DATA_NOTE}3. 위 보고 ①~④ 를 그대로 사용자에게 전하고, 아�
    - 「설명 탭: 새 탭 → codex → /permissions Full Access → /model → 「harness/roles/설명.md 읽고 역할 파악해. 이 세션은 설명 세션으로 쓸 거야」 → 탭 이름 설명」
    - (이름 충돌 줄이 있을 때만) 「이 파일은 과제 원본이라 덮지 않았습니다 — 어떻게 할까요?」 한 줄을 묻고 답을 받을 때까지 그 파일에 쓰지 않는다
    - \`다음 입력(오케): M0 종료 조건 충족(scaffold 커밋 · 스킬 목록) — 「과제 시작하자」를 치면 M1\`
-과제 원문은 아직 읽지 않고(「과제 시작하자」 때 읽는다) 다른 문서도 만들지 않는다. 스킬 목록(\`\$\`)이 resume 뒤에도 안 보이면 \`python3 harness/tools/install_skills.py --workspace .\` 를 한 번 더 돌린 뒤 다시 본다 — 그래도 없으면 .agents/skills/<이름>/SKILL.md 를 직접 읽어 진행한다.
+과제 원문은 아직 읽지 않고(「과제 시작하자」 때 읽는다) 다른 문서도 만들지 않는다. 스킬 목록(\`\$\`)이 resume 뒤에도 안 보이면 .agents/skills/<이름>/SKILL.md 를 직접 읽어 진행한다(전역 등록 \`install_skills.py\` 는 작업 공간 밖에 쓰므로 사용자가 시킬 때만).
 REPORT
