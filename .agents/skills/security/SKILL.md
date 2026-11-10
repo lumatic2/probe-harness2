@@ -1,15 +1,15 @@
 ---
 name: security
-description: 보안 7항목 — M2 설계(ARCHITECTURE 5절)·M3 브리프·검수에서 먼저 지키고, M5 에 오케가 서브에이전트로 1회 띄워 최종 확인하는 보안 점검(제출물은 고치지 않고 결과 문서만 쓴다) — 시크릿·입력 검증·외부 전송·의존성·권한·AI 호출·제출물 위생. 결과는 docs/security/M5.md 이며 처분은 오케, 수정은 소유 워커.
+description: 보안 7항목 — M3 설계(ARCHITECTURE 5절)·M4 브리프·검수에서 먼저 지키고, M6 에 오케가 서브에이전트로 1회 띄워 최종 확인하는 보안 점검(제출물은 고치지 않고 결과 문서만 쓴다) — 시크릿·입력 검증·외부 전송·의존성·권한·AI 호출·제출물 위생. 결과는 docs/security/M6.md 이며 처분은 오케, 수정은 소유 워커.
 ---
 
 # security — 보안 점검 (제출물은 고치지 않는다 — 결과 문서만 쓴다)
 
-> **M5 서브에이전트로 띄워졌다면**: 이 파일 + `AGENTS.md` + `docs/ARCHITECTURE.md` + `docs/과제설정.md`(5절 금지·허용) + 실행 안내 파일 + `src/`·`tests/`·`.env.example` + 의존성·실행 파일(`package.json`·잠금 파일·`requirements.txt`·`Dockerfile`·`scripts/`)만 읽는다. 결과 문서 `docs/security/M5.md` 하나만 쓰고 커밋하지 않는다. 마지막 메시지는 결과 문서 경로 + 결론 3줄. 처리는 오케가 한다.
+> **M6 서브에이전트로 띄워졌다면**: 이 파일 + `AGENTS.md` + `docs/ARCHITECTURE.md` + `docs/과제설정.md`(5절 금지·허용) + 실행 안내 파일 + `src/`·`tests/`·`.env.example` + 의존성·실행 파일(`package.json`·잠금 파일·`requirements.txt`·`Dockerfile`·`scripts/`)만 읽는다. 결과 문서 `docs/security/M6.md` 하나만 쓰고 커밋하지 않는다. 마지막 메시지는 결과 문서 경로 + 결론 3줄. 처리는 오케가 한다.
 
-제출물(코드·문서)은 고치지 않는다. 점검 결과만 `docs/security/M5.md` 에 쓴다 — 오케는 이 세션의 대화를 보지 않고 그 문서를 읽는다. 못 본 범위는 미확인으로 명시하며 검사한 것으로 처리하지 않는다.
+제출물(코드·문서)은 고치지 않는다. 점검 결과만 `docs/security/M6.md` 에 쓴다 — 오케는 이 세션의 대화를 보지 않고 그 문서를 읽는다. 못 본 범위는 미확인으로 명시하며 검사한 것으로 처리하지 않는다.
 
-**보안은 M5 에 처음 보는 것이 아니다.** 아래 7항목은 M2 설계(`docs/ARCHITECTURE.md` 5절)·M3 브리프 「지킬 것」·오케 검수에서 먼저 지킨다. 기계로 셀 수 있는 1·3·5·7번은 `python3 harness/tools/security_check.py` 가 매번 같은 명령으로 센다. M5 의 이 점검은 최종 확인이다.
+**보안은 M6 에 처음 보는 것이 아니다.** 아래 7항목은 M3 설계(`docs/ARCHITECTURE.md` 5절)·M4 브리프 「지킬 것」·오케 검수에서 먼저 지킨다. 기계로 셀 수 있는 1·3·5·7번은 `python3 harness/tools/security_check.py` 가 매번 같은 명령으로 센다. M6 의 이 점검은 최종 확인이다.
 
 ## 점검 (각 항목에 통과/지적, 지적은 `파일:줄`)
 
@@ -37,7 +37,7 @@ description: 보안 7항목 — M2 설계(ARCHITECTURE 5절)·M3 브리프·검�
 ## 출력 형식
 
 ```
-# security M5 — <HH:MM KST>
+# security M6 — <HH:MM KST>
 검사 범위·기준 커밋: <경로·커밋·미커밋 제품 변경 여부>
 검사 중 변경: <없음 또는 다시 확인할 경로>
 통과 / 미확인 / 해당 없음(이유): <각 항목 번호>

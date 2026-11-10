@@ -1,0 +1,17 @@
+# 설치: pip install -r requirements.txt
+# -*- coding: utf-8 -*-
+# 설치가 무거운 것: ortools, pm4py. 필요한 코드만 돌릴 거면 아래 대응대로 골라 설치해도 된다.
+# ortools      <- code/cpsat_jobshop.py, llm_to_solver.py, minimal_change_reschedule.py, pareto_frontier.py, robust_scenario.py
+# simpy        <- code/dispatch_simulation.py
+# highspy      <- code/lp_mip.py
+# scikit-learn <- code/anomaly_score_eval.py, imbalanced_eval.py, leakage_split_check.py, event_label_builder.py (마지막은 하드체크의 AUC 만)
+# pm4py        <- 어느 code/*.py 도 import 하지 않는다 (route_conformance.py 는 pm4py 없이 돈다; pm4py 는 적합도 비교용)
+# 나머지 code/*.py 20개는 numpy, scipy, pandas (와 표준 라이브러리) 만으로 돈다.
+numpy
+scipy
+pandas
+ortools
+simpy
+highspy
+pm4py>=2.7
+scikit-learn
