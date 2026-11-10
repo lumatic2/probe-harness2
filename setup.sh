@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # setup.sh — 클론한 하네스를 작업 공간에 합친다. 에이전트가 README 「세팅」 절대로 실행한다.
-# 사용: (작업 공간에서) bash probe-harness/setup.sh [작업공간]
+# 사용: (작업 공간에서) bash probe-harness2/setup.sh [작업공간]
 # 결과: 루트에 AGENTS.md·docs/·.agents/·harness/(guides·roles·starter·tools·vendor·verify.sh) 가 생긴다.
 #   작업공간 기본값 = 현재 폴더. 클론 폴더 안에서 실행했으면 그 부모.
 # 규칙: 과제가 준 파일은 덮어쓰지 않는다. AGENTS.md 만 예외 — 우리 것 + 원래 내용을 맨 끝 절에 붙인다.
@@ -136,7 +136,7 @@ if leaked="$(git diff --cached --name-only | grep -E '(^|/)\.env(\.[^/]*)?$|\.(k
   echo "$leaked" | while IFS= read -r f; do git rm -q --cached "$f" 2>/dev/null || true; done
   echo "경고: 시크릿 파일을 커밋에서 뺐다(값은 출력하지 않음): $(echo "$leaked" | tr '\n' ' ')" >&2
 fi
-git commit -q -m "scaffold: 하네스 세팅" -m "probe-harness clone 후 setup.sh" || echo "커밋 없음(변경 없음)"
+git commit -q -m "scaffold: 하네스 세팅" -m "probe-harness2 clone 후 setup.sh" || echo "커밋 없음(변경 없음)"
 
 N="$(find .agents/skills -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')"
 

@@ -54,6 +54,6 @@
 - **외과적 수정.** 브리프 범위만 고친다. 범위 밖 결함은 증상·위치만 오케에 보고. 새 추상화·도구는 「없으면 무엇이 깨지나」에 답이 있을 때만.
 
 ## 스킬 · 시크릿
-- 스킬은 `$이름`(`handoff` `verify` `decision` `evaluate` `security` `submit` `grilling` `systematic-debugging`). 안 잡히면 `.agents/skills/<이름>/SKILL.md` 를 직접 읽는다. 작업 폴더 밖 스킬·MCP 는 쓰지 않는다.
+- 스킬은 `$이름`(`handoff` `verify` `decision` `evaluate` `design-review` `security` `submit` `grilling` `systematic-debugging`). 안 잡히면 `.agents/skills/<이름>/SKILL.md` 를 직접 읽는다. 작업 폴더 밖 스킬·MCP 는 쓰지 않는다.
 - 출력·queue 문장에 한글·영문 외 문자(한자·가나)가 섞이면 보내기 전에 다시 쓴다.
 - 키·토큰은 `.env` 에만, `.env.example` 에 이름만. 코드·커밋·로그에 값 금지.
