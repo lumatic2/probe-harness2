@@ -55,5 +55,6 @@
 
 ## 스킬 · 시크릿
 - 스킬은 `$이름`(`handoff` `verify` `decision` `evaluate` `design-review` `security` `submit` `grilling` `systematic-debugging`). 안 잡히면 `.agents/skills/<이름>/SKILL.md` 를 직접 읽는다. 작업 폴더 밖 스킬·MCP 는 쓰지 않는다.
+- **사용자가 새 스킬을 만들자고 하면** `.agents/skills/<이름>/SKILL.md`(머리에 `name`·`description`)로 만들고, `python3 harness/tools/check_skills.py --workspace .` 로 인식을 확인하고, `$decision` 한 줄(왜 만들었나)과 함께 커밋한다. 떠 있는 탭의 `$` 목록에 안 보이면 `/quit` → `codex resume`. 에이전트가 먼저 만들자고 하지 않는다.
 - 출력·queue 문장에 한글·영문 외 문자(한자·가나)가 섞이면 보내기 전에 다시 쓴다.
 - 키·토큰은 `.env` 에만, `.env.example` 에 이름만. 코드·커밋·로그에 값 금지.

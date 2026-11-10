@@ -7,7 +7,7 @@
 # HOW_TO_RUN
 
 ## 1. 목적과 범위
-<누구>의 <문제>를 <무엇>으로 푼다 (한 문장 — docs/PROBLEM.md 1절). 다루는 요구 R1~Rn 한 줄씩. 다루지 않은 범위: <무엇> — 이유 (docs/DECISIONS.md D#).
+<누구>의 <문제>를 <무엇>으로 푼다 (한 문장 — docs/PROBLEM.md 0절. 첫 화면 본문 첫 줄과 같은 문장). 다루는 요구 R1~Rn 한 줄씩. 다루지 않은 범위: <무엇> — 이유 (docs/DECISIONS.md D#).
 
 ## 2. 기술 스택
 화면 React 19 + Vite + Tailwind 4 + shadcn(dashboard-01) · 노드 그래프 @xyflow/react · 서버 vite preview 미들웨어(/api, Node 20.19+) · 엔진 <언어·라이브러리> · 컨테이너 Dockerfile(node:22-alpine). 외부 서비스: 없음(또는 <무엇> — 키는 서버 환경변수에만).
