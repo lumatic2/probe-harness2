@@ -77,23 +77,14 @@ if [ -n "$ROOT_MD$DATA_DIRS" ]; then
 fi
 chmod +x harness/verify.sh harness/tools/recon.sh
 
-# 2b. 레포 스킬을 먼저 확인한다. 인식되면 전역 사본을 만들 필요가 없다.
+# 2b. 레포 스킬이 인식되는지 확인만 한다. setup.sh 는 작업 공간 밖에 아무것도 쓰지 않는다(전역 등록은 사용자 승인 뒤 install_skills.py 로 따로).
 PY="$(command -v python3 || command -v python || true)"
 [ -n "$PY" ] || { echo "스킬 확인에 Python 3 필요" >&2; exit 1; }
 SKILL_LOADER="미확인"
 if "$PY" harness/tools/check_skills.py --workspace "$TGT"; then
   SKILL_LOADER="PASS(정확한 키트 사본 발견; 전역 복사 생략)"
 else
-  echo "레포 스킬 로더 미통과 — 활성 홈 등록을 한 번 시도한다"
-  if "$PY" harness/tools/install_skills.py --workspace "$TGT"; then
-    if "$PY" harness/tools/check_skills.py --workspace "$TGT"; then
-      SKILL_LOADER="PASS(등록 후 별도 로더)"
-    else
-      echo "자동 호출 미확인 — .agents/skills/<이름>/SKILL.md를 직접 읽어 진행한다"
-    fi
-  else
-    echo "전역 스킬 보존; 등록 실패. 이 레포의 .agents/skills/<이름>/SKILL.md를 직접 읽어 진행한다. 설치 성공으로 보고하지 않는다."
-  fi
+  echo "레포 스킬 로더 미통과 — 작업 공간 밖에는 쓰지 않는다. \$ 목록에 스킬이 안 보이면 사용자에게 알리고, 승인 뒤 python3 harness/tools/install_skills.py --workspace . 를 돌린다. 그 전에는 .agents/skills/<이름>/SKILL.md 를 직접 읽어 진행한다."
 fi
 
 # 3. 정찰 (환경 한 줄 — 복원 검증은 하지 않는다. 시작점 코드 검증은 구현 때 verify.sh 로)
