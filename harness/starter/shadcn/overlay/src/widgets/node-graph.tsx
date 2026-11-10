@@ -81,7 +81,19 @@ function GraphNodeView({ data, selected }: NodeProps<GNode>) {
 }
 const NODE_TYPES = { g: GraphNodeView }
 
-export function NodeGraph({ data, height = 420, selectedId, onSelect, className }: { data: GraphData; height?: number; selectedId?: string; onSelect?: (id: string) => void; className?: string }) {
+// 한 노드가 막혔을 때 영향이 번지는 범위 — 선의 방향(from → to)을 따라 닿는 모든 노드. 막힌 노드 자신은 들어가지 않는다.
+export function impactOf(data: GraphData, blockedId: string): string[] {
+  const out = new Set<string>(), queue = [blockedId]
+  while (queue.length) {
+    const cur = queue.shift()!
+    for (const e of data.edges) if (e.from === cur && e.to !== blockedId && !out.has(e.to)) { out.add(e.to); queue.push(e.to) }
+  }
+  return [...out]
+}
+
+// blocked = 막힌 노드 id. 주면 그 노드는 긴급, 번지는 노드는 주의로 칠하고 나머지는 흐리게 — 그래프 위에 「막힌 곳 → 영향 N곳」 한 줄이 붙는다.
+export function NodeGraph({ data, height = 420, selectedId, onSelect, className, blocked }: { data: GraphData; height?: number; selectedId?: string; onSelect?: (id: string) => void; className?: string; blocked?: string | null }) {
+  const hit = useMemo(() => (blocked && data.nodes.some((n) => n.id === blocked) ? new Set(impactOf(data, blocked)) : null), [data, blocked])
   const groups = useMemo(() => (data.groups ?? []).map((g, i) => ({ ...g, color: g.color ?? PALETTE[i % PALETTE.length] })), [data.groups])
   const colorOf = useCallback((key?: string) => groups.find((g) => g.key === key)?.color ?? NEUTRAL, [groups])
   const [only, setOnly] = useState<string | null>(null)
@@ -93,21 +105,23 @@ export function NodeGraph({ data, height = 420, selectedId, onSelect, className 
   useEffect(() => { setMoved({}) }, [base])
   const nodes = useMemo<GNode[]>(() => data.nodes.map((n) => ({
     id: n.id, type: 'g', position: moved[n.id] ?? base.get(n.id) ?? { x: 0, y: 0 }, selected: n.id === selectedId, zIndex: n.kind === 'hub' ? 10 : 1,
-    data: { ...n, color: colorOf(n.group), dim: !!only && n.kind !== 'hub' && n.group !== only, active: n.id === selectedId },
-  })), [data.nodes, base, moved, colorOf, only, selectedId])
+    data: { ...n, tone: hit ? (n.id === blocked ? 'urgent' : hit.has(n.id) ? 'warn' : undefined) : n.tone, color: colorOf(n.group), dim: hit ? n.id !== blocked && !hit.has(n.id) : !!only && n.kind !== 'hub' && n.group !== only, active: n.id === selectedId },
+  })), [data.nodes, base, moved, colorOf, only, selectedId, hit, blocked])
   const edges = useMemo<Edge[]>(() => data.edges.map((e, i) => {
-    const dim = !!only && e.group !== only
-    const color = colorOf(e.group)
+    const onPath = !!hit && (e.from === blocked || hit.has(e.from)) && hit.has(e.to)
+    const dim = hit ? !onPath : !!only && e.group !== only
+    const color = onPath ? 'var(--sk-orange)' : colorOf(e.group)
     return {
       id: e.id ?? `${e.from}→${e.to}#${i}`, source: e.from, target: e.to, type: 'straight', label: e.label, focusable: false,
       style: { stroke: color, strokeWidth: dim ? 1 : 2, opacity: dim ? 0.15 : 0.9 },
       labelStyle: { fill: 'var(--muted-foreground)', fontSize: 10, opacity: dim ? 0 : 1 }, labelBgStyle: { fill: 'var(--background)', opacity: dim ? 0 : 0.9 }, labelBgPadding: [3, 1] as [number, number],
     }
-  }), [data.edges, colorOf, only])
+  }), [data.edges, colorOf, only, hit, blocked])
 
   if (!data.nodes.length) return <Empty>표시할 노드가 없습니다.</Empty>
   return (
     <div className={`flex flex-col gap-2 ${className ?? ''}`} data-node-graph>
+      {hit ? <p className="text-sm" data-impact={hit.size}><span className="font-semibold">막힌 곳: {data.nodes.find((n) => n.id === blocked)?.label}</span> → 영향이 번지는 곳 <span className="font-semibold tabular-nums">{hit.size}곳</span>{hit.size ? <span className="text-muted-foreground">: {data.nodes.filter((n) => hit.has(n.id)).map((n) => n.label).join(', ')}</span> : <span className="text-muted-foreground"> (뒤로 이어지는 곳이 없습니다)</span>}</p> : null}
       <div className="flex flex-wrap items-center gap-1.5">
         {groups.length ? (
           <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="그룹 범례">

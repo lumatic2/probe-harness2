@@ -122,7 +122,7 @@ export default function Assist() {
                 </div>
                 {result.ai.state === 'loading' ? <p className="text-sm text-muted-foreground">AI 제안을 불러오는 중…</p> : null}
                 {result.ai.state === 'done' ? <p className="text-sm leading-relaxed">{result.ai.text}</p> : null}
-                {result.ai.state === 'done' && result.ai.source === 'mock' && reasonText(result.ai.reason) ? <p className="text-xs text-muted-foreground">OpenAI 호출 실패({reasonText(result.ai.reason)}) — 모의 응답으로 대신함</p> : null}
+                {result.ai.state === 'done' && result.ai.source === 'mock' && reasonText(result.ai.reason) ? <p className="text-xs text-muted-foreground">OpenAI 호출 실패({reasonText(result.ai.reason)}), 모의 응답으로 대신함</p> : null}
                 {result.ai.state === 'error' ? <p role="alert" className="text-sm text-destructive">{result.ai.message}</p> : null}
               </div>
             </div>

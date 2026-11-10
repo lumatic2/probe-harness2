@@ -11,6 +11,7 @@ type Out = { status: number; json: Record<string, unknown> }
 type AuthOut = Out & { cookie?: string }
 export function createApi<U>(opts: {
   root: string
+  ai?: { enabled: boolean; model?: string } // health 가 「AI 키가 있나」를 알려 주는 데 쓴다
   auth: { enabled: boolean; me: (cookie: unknown) => AuthOut; login: (body: unknown) => AuthOut; logout: (cookie: unknown) => AuthOut; userFrom: (cookie: unknown) => U | null; canWrite: (user: U | null) => boolean }
   assist: (body: unknown) => Promise<Out>
   chat: (body: unknown) => Promise<Out>

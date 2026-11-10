@@ -119,7 +119,7 @@ export default function Settings() {
       setErrs({})
       toast.success('저장됨', { description: `${rec.entries.length}개 항목 · ${rec.entries[0].ts.slice(11)}` })
     } catch (err) {
-      toast.error('저장하지 못했습니다', { description: `${(err as Error).message} — 서버가 켜져 있는지 확인하세요.` })
+      toast.error('저장하지 못했습니다', { description: `${(err as Error).message}. 서버가 켜져 있는지 확인하세요.` })
     } finally { setBusy(false) }
   }
 

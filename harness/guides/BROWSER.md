@@ -23,6 +23,16 @@
 ## 흰 화면이면 — 이 순서로 가른다
 입력(포트·경로) → 리스너(`ss -ltnp` 또는 `curl 127.0.0.1:3000/`) → HTML/자산/API 각각(`curl -H "Host: 임의" …` 로 다른 Host 응답) → 실제 Browser 요청·콘솔 → Host·iframe 헤더(CSP · X-Frame-Options). CSP·Host 허용을 근거 없이 전체 해제하지 않는다. 모든 흰 화면의 원인이 개발 서버였다고 단정하지 않는다.
 
+- 스타터(`harness/starter/shadcn`)는 `0.0.0.0` 에 열고 `*.e2b.app` Host 를 허용해 둔다(`vite.config.ts`). Browser 주소의 접미사가 다르면 `ALLOWED_HOSTS=".그-접미사" npx vite preview` 로 더한다. `ALLOWED_HOSTS="*"` 는 원인을 가를 때만 쓰고, 원인이 Host 였으면 접미사로 좁힌다.
+- `make.sh` 는 끝에 「미리보기 점검」(다른 Host 로 `/` 와 `/api/health`)을 돌린다. 여기서 실패가 났으면 Browser 를 열기 전에 먼저 고친다.
+
+## 로그인 직후 다시 「로그인 필요」가 뜨면
+- 증상: 로그인 버튼을 누르면 다음 화면으로 넘어가는데 로그인이 안 된 것으로 나온다. `/api/auth-login` 은 200 인데 그 뒤 `/api/*` 가 401 이다.
+- 원인 후보 1순위: Browser 는 앱을 다른 사이트의 틀(iframe) 안에 띄운다. 이 구조에서는 `SameSite=Lax` 세션 쿠키가 요청에 실리지 않는다.
+- 스타터의 대비: 로그인 응답의 `token` 을 화면이 보관해 모든 `/api` 요청에 `Authorization: Bearer` 로 같이 보낸다(`src/lib/session-fetch.ts`, 서버는 `server/api.mjs` 의 `cred`). 쿠키가 막혀도 세션이 이어진다.
+- 새 요청 코드를 쓸 때: `fetch('/api/…')` 를 그대로 쓰면 토큰이 붙는다. `XMLHttpRequest`·`EventSource`·`<img src="/api/…">`·파일 내려받기 링크처럼 `fetch` 를 거치지 않는 요청에는 붙지 않으니, 그런 경로가 필요하면 `fetch` 로 받아 처리한다.
+- 직접 짠 서버로 바꿨다면 같은 통로(쿠키 또는 Bearer 헤더 둘 다 받기)를 유지한다. 가르는 법: `curl -H "Authorization: Bearer <토큰>" http://127.0.0.1:3000/api/auth-me` 가 200 인지.
+
 ## 다른 장애와 섞지 않는다
 - 플랫폼 **모델 게이트웨이 401**(`gateway_token_invalid` 류)은 Browser 와 무관한 장애다. 시각·코드·경로·영향을 비밀 없이 **신고**만 한다. 앱 `.env` 를 바꾸거나 토큰을 출력하거나 재시도를 반복하거나 플랫폼 서비스를 재시작하지 않는다. 앱 로그아웃 상태의 `/api/me` 401 과도 다르다.
 - 터미널 연결이 끊기면 터미널의 「다시 연결」, 안 되면 `+` 로 새 터미널. 미리보기가 멈추면 우측 상단 CPU/RAM 부터 본다 — 탭·서버를 너무 많이 띄워 생긴 OOM 은 구제 대상이 아니다. 쓸모없어진 탭·서버는 닫는다.

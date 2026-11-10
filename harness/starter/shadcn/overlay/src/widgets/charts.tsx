@@ -115,7 +115,7 @@ export function ControlChart({ w, height = 260 }: { w: W | null; height?: number
               const { cx, cy, index = 0, payload } = p
               if (cx === undefined || cy === undefined || !payload) return <g key={index} />
               return payload.out ? (
-                <circle key={index} cx={cx} cy={cy} r={6} fill="var(--chart-1)" data-out={payload.date} style={{ cursor: 'pointer' }} onClick={() => payload.href && navigate(payload.href)}><title>{`${payload.date} · 한계 밖 — 누르면 그날 목록`}</title></circle>
+                <circle key={index} cx={cx} cy={cy} r={6} fill="var(--chart-1)" data-out={payload.date} style={{ cursor: 'pointer' }} onClick={() => payload.href && navigate(payload.href)}><title>{`${payload.date} · 한계 밖, 누르면 그날 목록`}</title></circle>
               ) : <circle key={index} cx={cx} cy={cy} r={3.5} fill="var(--chart-2)" />
             }}
           />

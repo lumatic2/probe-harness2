@@ -106,7 +106,7 @@ export function Recorder({ text = true, maxSec = MAX_SEC, onText }: { text?: boo
       if (my !== seq.current) return
       setValue(j.text)
       setMock(!!j.mock)
-      setNote(j.mock && reasonText(j.reason) ? `OpenAI 호출 실패(${reasonText(j.reason)}) — 모의 전사로 대신함` : '')
+      setNote(j.mock && reasonText(j.reason) ? `OpenAI 호출 실패(${reasonText(j.reason)}), 모의 전사로 대신함` : '')
       onText?.(j.text, { mock: !!j.mock, reason: j.reason })
     } catch (e) {
       if (my === seq.current) setNote(`변환하지 못했습니다(${(e as Error).message}).`)

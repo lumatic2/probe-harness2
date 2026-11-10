@@ -8,6 +8,7 @@ export function parseUsers(text: unknown): { id: string; password: string; role:
 export function parseCookie(header: unknown): Record<string, string>
 export function createAuth(opts?: { env?: Record<string, string | undefined>; now?: () => number; token?: () => string }): {
   enabled: boolean
+  quick: boolean
   users: AuthUser[]
   login: (body: unknown) => AuthResult
   logout: (cookieHeader: unknown) => AuthResult

@@ -18,11 +18,13 @@ import { useAuth } from '@/lib/auth'
 import { ctx } from '@/lib/derive'
 import { downloadJson } from '@/lib/download'
 import { CurrentDatasetBadge } from '@/pages/datasets'
+import type { CompareRow } from '@/widgets/decision'
 import { Empty, WidgetCard } from '@/widgets/panel'
+import { ExcludedNote, ResultCompare, WorstCases, type Excluded, type WorstCase } from '@/widgets/review'
 
 export type RunParam = { key: string; label: string; type: 'number' | 'enum'; default: number | string; unit?: string; min?: number; max?: number; step?: number; options?: (string | { v: string; label?: string })[] }
 type Summary = { label: string; value: number | string; unit?: string }
-type Status = { state: 'idle' | 'running' | 'done' | 'error'; progress: number; step: string; startedAt: string | null; finishedAt: string | null; dataset: string | null; error: string | null; last: { at: string; dataset: string | null; params: Record<string, unknown> } | null; result: { mock?: boolean; summary?: Summary[]; items?: Record<string, unknown>[]; graph?: unknown } | null }
+type Status = { state: 'idle' | 'running' | 'done' | 'error'; progress: number; step: string; startedAt: string | null; finishedAt: string | null; dataset: string | null; error: string | null; last: { at: string; dataset: string | null; params: Record<string, unknown> } | null; result: { mock?: boolean; summary?: Summary[]; items?: Record<string, unknown>[]; graph?: unknown; compare?: { rows: CompareRow[]; baseLabel?: string; nextLabel?: string; note?: string }; worst?: { metric: string; unit: string; average?: number; items: WorstCase[] }; excluded?: { total: number; groups: Excluded[] } } | null }
 
 const POLL_MS = 500
 const optV = (o: string | { v: string; label?: string }) => (typeof o === 'string' ? o : o.v)
@@ -132,6 +134,15 @@ export default function Run() {
           </div>
         </WidgetCard>
 
+        {st?.result && (st.result.compare || st.result.worst || st.result.excluded) ? (
+          <WidgetCard title="결과 검토" sub="승인하기 전에 볼 것. 지금 운영안과 비교 · 가장 나빠지는 건 · 계산에서 뺀 기록" className="@4xl/main:col-span-12">
+            <div className="flex flex-col gap-6" data-review>
+              {st.result.excluded ? <ExcludedNote total={st.result.excluded.total} groups={st.result.excluded.groups} /> : null}
+              {st.result.compare ? <ResultCompare rows={st.result.compare.rows} baseLabel={st.result.compare.baseLabel} nextLabel={st.result.compare.nextLabel} note={st.result.compare.note} /> : null}
+              {st.result.worst ? <WorstCases metric={st.result.worst.metric} unit={st.result.worst.unit} average={st.result.worst.average} items={st.result.worst.items} /> : null}
+            </div>
+          </WidgetCard>
+        ) : null}
         {st?.result?.items?.length ? (
           <WidgetCard title="결과 항목" sub={`${st.result.items.length}건 · 처음 50건`} className="@4xl/main:col-span-12">
             <div className="overflow-x-auto rounded-lg border" data-items>

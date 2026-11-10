@@ -9,9 +9,9 @@ import path from 'node:path';
 import { createApi, HttpError, PROTECTED_STORE, READ_POSTS, readJsonBody } from './api.mjs';
 
 // ---- 요청·응답 모형
-function makeReq(method, url, { body, cookie, chunks } = {}) {
+function makeReq(method, url, { body, cookie, authorization, chunks } = {}) {
   const req = new EventEmitter();
-  req.method = method; req.url = url; req.headers = cookie ? { cookie } : {};
+  req.method = method; req.url = url; req.headers = { ...(cookie ? { cookie } : {}), ...(authorization ? { authorization } : {}) };
   const parts = chunks ?? (body === undefined ? [] : [Buffer.from(typeof body === 'string' ? body : JSON.stringify(body))]);
   queueMicrotask(() => { for (const c of parts) req.emit('data', c); req.emit('end'); });
   return req;
@@ -72,7 +72,9 @@ test('/api 밖은 next(), 이름이 틀리면 400, health 는 인증 없이 200'
   assert.equal((await call(api, 'GET', '/api/%E0%A4%A')).status, 400); // decode 실패
   const h = await call(api, 'GET', '/api/health?x=1');
   assert.equal(h.status, 200);
-  assert.deepEqual(h.json, { ok: true, auth: true });
+  assert.deepEqual(h.json, { ok: true, auth: true, ai: false });
+  const withAi = await call(createApi({ ...makeServices(tmpRoot()).opts, ai: { enabled: true, model: 'm-1' } }), 'GET', '/api/health');
+  assert.deepEqual(withAi.json, { ok: true, auth: true, ai: true, aiModel: 'm-1' });
 });
 
 test('auth-* — me 는 GET, login·logout 은 POST, 그 외 405, Set-Cookie 전달, 로그인 전에도 닿는다', async () => {
@@ -203,4 +205,14 @@ test('readJsonBody — HttpError 상태를 그대로 들고 온다', async () =>
   await assert.rejects(readJsonBody(makeReq('POST', '/x', { body: '{' })), (e) => e instanceof HttpError && e.status === 400);
   await assert.rejects(readJsonBody(makeReq('POST', '/x', { chunks: [Buffer.alloc(10)] }), 4), (e) => e instanceof HttpError && e.status === 413);
   assert.deepEqual(await readJsonBody(makeReq('POST', '/x'), 100, true), {});
+});
+
+test('Authorization: Bearer 토큰은 쿠키 자리로 합쳐져 auth 에 넘어간다 — 쿠키가 없어도, 있어도(뒤에 붙는다)', async () => {
+  const s = makeServices(tmpRoot());
+  const api = createApi(s.opts);
+  await call(api, 'GET', '/api/auth-me', { authorization: 'Bearer tok-12345678' });
+  await call(api, 'GET', '/api/auth-me', { cookie: 'x=1', authorization: 'Bearer tok-12345678' });
+  await call(api, 'GET', '/api/auth-me', { cookie: 'x=1', authorization: 'Basic abc' });
+  const seen = s.opts.auth.calls.filter((c) => c[0] === 'me').map((c) => c[1]);
+  assert.deepEqual(seen, ['sk_session=tok-12345678', 'x=1; sk_session=tok-12345678', 'x=1']);
 });

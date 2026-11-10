@@ -5,7 +5,7 @@
 // 분기 순서(위에서 아래로 처음 맞는 것):
 //   1. /api/ 로 시작하지 않으면 next()
 //   2. 이름 검사 — decode 실패·^[a-z0-9-]+$ 아니면 400
-//   3. health — 인증 없이 200 {ok, auth}
+//   3. health — 인증 없이 200 {ok, auth, ai, aiModel?} (ai = 서버에 AI 키가 있나. 키 값은 내보내지 않는다)
 //   4. auth-me(GET) · auth-login(POST) · auth-logout(POST) — 그 외 메서드 405. Set-Cookie 전달
 //   5. 세션 검사 — auth.userFrom 이 null 이면 401 (AUTH_ON 꺼져 있으면 기본 역할로 통과)
 //   6. 쓰기 권한 — POST/PUT 이고 READ_POSTS 가 아니고 canWrite 가 아니면 403
@@ -66,6 +66,7 @@ export async function readJsonBody(req, max = MAX_BODY, emptyOk = false) {
   try { return JSON.parse(text) } catch { throw new HttpError(400, 'JSON 형식이 아닙니다.') }
 }
 
+const SESSION_COOKIE = 'sk_session' // auth.mjs 의 COOKIE 와 같은 이름
 /**
  * @param {{
  *   root: string,
@@ -84,24 +85,29 @@ export function createApi(opts) {
   const DATA = path.join(root, 'data')
   const STORE = path.join(DATA, 'store')
 
+  // 세션 자격 = 쿠키 + (있으면) Authorization: Bearer 토큰. 토큰을 쿠키 꼴로 뒤에 붙여 넘긴다 — 뒤에 온 값이 이기므로 쿠키가 막힌 환경(다른 사이트의 틀 안)에서도 같은 검사를 탄다.
+  const cred = (req) => {
+    const m = /^Bearer\s+([A-Za-z0-9._-]{8,200})$/.exec(String(req.headers.authorization ?? ''))
+    return m ? `${req.headers.cookie ? `${req.headers.cookie}; ` : ''}${SESSION_COOKIE}=${m[1]}` : req.headers.cookie
+  }
   async function handle(req, res, next) {
     const url = req.url ?? ''
     if (!url.startsWith('/api/')) return next()
     let name
     try { name = decodeURIComponent(url.slice(5).split('?')[0]) } catch { return sendJson(res, 400, { error: '잘못된 주소' }) }
     if (!NAME_RE.test(name)) return sendJson(res, 400, { error: '이름은 소문자·숫자·하이픈만 쓸 수 있습니다.' })
-    if (name === 'health') return sendJson(res, 200, { ok: true, auth: auth.enabled })
+    if (name === 'health') return sendJson(res, 200, { ok: true, auth: auth.enabled, ai: !!opts.ai?.enabled, ...(opts.ai?.enabled && opts.ai.model ? { aiModel: opts.ai.model } : {}) })
     if (name.startsWith('auth-')) {
       let out
-      if (name === 'auth-me' && req.method === 'GET') out = auth.me(req.headers.cookie)
-      else if (name === 'auth-logout' && req.method === 'POST') out = auth.logout(req.headers.cookie)
+      if (name === 'auth-me' && req.method === 'GET') out = auth.me(cred(req))
+      else if (name === 'auth-logout' && req.method === 'POST') out = auth.logout(cred(req))
       else if (name === 'auth-login' && req.method === 'POST') out = auth.login(await readJsonBody(req, maxBody))
       else return sendJson(res, 405, { error: 'auth-me 는 GET, auth-login·auth-logout 은 POST' })
       if (out.cookie) res.setHeader('Set-Cookie', out.cookie)
       return sendJson(res, out.status, out.json)
     }
     // 서버 측 권한 검사 — 버튼 숨김과 별개. 꺼져 있으면(AUTH_ON≠1) 기본 역할로 통과한다.
-    const user = auth.userFrom(req.headers.cookie)
+    const user = auth.userFrom(cred(req))
     if (!user) return sendJson(res, 401, { error: '로그인이 필요합니다.' })
     const writes = req.method === 'POST' || req.method === 'PUT'
     if (writes && !READ_POSTS.has(name) && !auth.canWrite(user)) return sendJson(res, 403, { error: '이 작업은 쓰기 권한이 있는 계정만 할 수 있습니다.' })

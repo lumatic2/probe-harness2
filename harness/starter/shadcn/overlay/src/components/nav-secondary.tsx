@@ -15,6 +15,9 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { navigate } from '@/lib/app-context'
 import { ctx, PERIODS } from '@/lib/derive'
 import { HELP, isEnabled, NAV, PAGE_META } from '@/lib/pages'
+import { Button } from '@/components/ui/button'
+import { TOUR } from '@/lib/tour-steps'
+import { startTour } from '@/widgets/tour'
 import { DEFAULT_PREFS, loadPrefs, savePrefs, type Prefs } from '@/lib/prefs'
 import { titleOf } from '@/domain/core.mjs'
 
@@ -67,11 +70,12 @@ function PrefsSheet({ open, onOpenChange }: { open: boolean; onOpenChange: (o: b
 
 // ── 도움말
 function HelpDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
-  const steps: string[] = ctx.d.help?.steps?.length ? ctx.d.help.steps : menuPages().filter((k) => k !== 'widgets').map((k) => `${PAGE_META[k].name} — ${HELP[k] ?? ''}`.replace(/ — $/, ''))
+  const steps: string[] = ctx.d.help?.steps?.length ? ctx.d.help.steps : menuPages().filter((k) => k !== 'widgets').map((k) => `${PAGE_META[k].name}: ${HELP[k] ?? ''}`.replace(/. $/, ''))
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[85vh] overflow-y-auto" data-help>
         <DialogHeader><DialogTitle>{ctx.d.app.name} 이용 안내</DialogTitle><DialogDescription>{ctx.d.help?.intro ?? '메뉴 순서대로 쓰면 됩니다. 각 화면이 무엇을 하는지 한 줄씩.'}</DialogDescription></DialogHeader>
+        {TOUR.length ? <div><Button variant="outline" size="sm" onClick={() => { onOpenChange(false); navigate('#/dashboard'); setTimeout(startTour, 300) }} data-tour-again>화면 안내 다시 보기</Button></div> : null}
         <ol className="list-decimal space-y-2 pl-5 text-sm leading-relaxed">{steps.map((s, i) => <li key={i}>{s}</li>)}</ol>
         <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm">
           <dt className="text-muted-foreground">데이터 기준</dt><dd>{ctx.d.app.asOf}</dd>

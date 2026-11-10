@@ -60,7 +60,7 @@ export default function Review() {
       await save({ ...saved, [selected]: makeRecord(cfg, tags, reason, nowTs()) })
       toast.success('저장됨', { description: `${selected} · ${tags.join(', ')}` })
     } catch (err) {
-      toast.error('저장하지 못했습니다', { description: `${(err as Error).message} — 서버가 켜져 있는지 확인하세요.` })
+      toast.error('저장하지 못했습니다', { description: `${(err as Error).message}. 서버가 켜져 있는지 확인하세요.` })
     } finally { setSaving(false) }
   }
 

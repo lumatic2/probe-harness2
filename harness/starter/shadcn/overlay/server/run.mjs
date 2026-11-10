@@ -3,7 +3,7 @@
 // GET  /api/run-status  → { state:'idle'|'running'|'done'|'error', progress(0~100), step, startedAt, finishedAt, params, dataset, result?, error? }
 // 결과는 data/store/run-result.json 에 쓴다(서버를 다시 켜도 남는다). 화면 그래프·내보내기는 /api/run-result(GET, 일반 JSON 경로)로 읽는다.
 // 엔진 계약(engine.mjs): export async function runEngine({ params, datasetDir, files, report }) → result. report(progress, step) 으로 진행을 알린다.
-//   result 모양은 자유이되 { summary:[{label,value,unit?}], graph?:{nodes,edges,groups}, items?:[...] } 를 권장한다 — 실행 화면·노드 그래프·내보내기가 그대로 쓴다.
+//   result 모양은 자유이되 { summary:[{label,value,unit?}], graph?:{nodes,edges,groups}, items?:[...] } 를 권장한다 — 실행 화면·노드 그래프·내보내기가 그대로 쓴다. 검토 칸(선택): compare:{rows:[{label,before,after,delta?,better?,kind?}],baseLabel?,nextLabel?,note?} · worst:{metric,unit,average?,items:[{id,label,value,before?,note?,href?}]} · excluded:{total,groups:[{reason,count,examples?}]} — 채우면 실행 화면에 「결과 검토」 카드가 뜬다.
 import fs from 'node:fs';
 import path from 'node:path';
 

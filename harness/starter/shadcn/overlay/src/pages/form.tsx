@@ -1,5 +1,6 @@
 // ④ 입력·판정 — Select · RadioGroup · Textarea · 검증 메시지 → POST /api/decisions-<도메인> → 토스트 + 이력 즉시 반영
 // 입력칸은 도메인 설정(form.fields)에서 온다: number · date · text · radio · textarea.
+import { useFreshIds } from '@/widgets/parts'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { LimitNote } from '@/components/page-parts'
@@ -43,11 +44,12 @@ export default function Form() {
       toast.success('저장됨', { description: `${rec.ref} · ${rec.ts.slice(11)}` })
       setVals({})
     } catch (err) {
-      toast.error('저장하지 못했습니다', { description: `${(err as Error).message} — 서버가 켜져 있는지 확인하세요.` })
+      toast.error('저장하지 못했습니다', { description: `${(err as Error).message}. 서버가 켜져 있는지 확인하세요.` })
     } finally { setSaving(false) }
   }
 
   const recent = [...decisions].reverse().slice(0, 8)
+  const fresh = useFreshIds(decisions.map((d) => d.id)) // 방금 저장한 행은 한 번 옅게 강조된다
   return (
     <>
       <div className="grid grid-cols-1 gap-4 px-4 lg:px-6 @4xl/main:grid-cols-5">
@@ -85,7 +87,7 @@ export default function Form() {
               <TableHeader><TableRow><TableHead>시각</TableHead><TableHead>{ctx.d.entity.singular}</TableHead>{fields.map((fl) => <TableHead key={fl.key} className={fl.type === 'number' ? 'text-right' : ''}>{fl.label.replace(/\s*\(.*\)$/, '')}</TableHead>)}</TableRow></TableHeader>
               <TableBody>
                 {recent.map((d) => (
-                  <TableRow key={d.id}>
+                  <TableRow key={d.id} className={fresh.has(d.id) ? 'sk-flash' : ''}>
                     <TableCell className="whitespace-nowrap tabular-nums">{shortTs(d.ts)}</TableCell>
                     <TableCell><a className="hover:underline" href={`#/item/${d.ref}`}>{d.ref}</a></TableCell>
                     {fields.map((fl) => <TableCell key={fl.key} className={fl.type === 'number' ? 'text-right tabular-nums' : fl.type === 'textarea' ? 'min-w-40 whitespace-normal break-words' : ''}>{d[fl.key]}</TableCell>)}

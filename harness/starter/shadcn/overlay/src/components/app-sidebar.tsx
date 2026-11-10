@@ -5,6 +5,7 @@ import { NavSecondary } from '@/components/nav-secondary'
 import { NavUser } from '@/components/nav-user'
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar'
 import { useApp } from '@/lib/app-context'
+import { useAuth } from '@/lib/auth'
 import { ctx } from '@/lib/derive'
 import { NAV, PAGE_META } from '@/lib/pages'
 
@@ -12,6 +13,7 @@ import { NAV, PAGE_META } from '@/lib/pages'
 // 필터(기간·그룹)는 메뉴를 옮겨도 유지한다(link).
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { route, link } = useApp()
+  const auth = useAuth()
   const activePage = route.page === 'item' ? 'list' : route.page
   const items = NAV.flatMap((g) => g.pages).map(({ key, icon: Icon }) => ({ key, title: PAGE_META[key].name, url: link(key), icon: <Icon /> }))
   return (
@@ -29,13 +31,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={items} activeKey={activePage} quickHref={link('form')} />
+        <NavMain items={items} activeKey={activePage} />
         <NavDocuments />
         <NavSecondary className="mt-auto" />
       </SidebarContent>
-      <SidebarFooter>
-        <NavUser />
-      </SidebarFooter>
+      {auth.enabled ? <SidebarFooter><NavUser /></SidebarFooter> : null}{/* 로그인을 껐으면 사용자 칸을 두지 않는다(지어낸 계정을 보이지 않는다) */}
     </Sidebar>
   )
 }

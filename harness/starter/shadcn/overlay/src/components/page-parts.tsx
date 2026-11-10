@@ -1,4 +1,5 @@
 // page-parts.tsx — 모든 페이지가 쓰는 조각: 공통 필터 줄 · 「이 화면의 한계」 한 줄 · 페이지 틀
+import { SHOW_DEV } from '@/lib/pages'
 import type { ReactNode } from 'react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
@@ -9,7 +10,7 @@ export function FilterBar() {
   const { route, setQuery } = useApp()
   const n = rowsIn(ctx, windowDates(ctx, route), route.group).length
   return (
-    <div className="flex flex-wrap items-center gap-3 px-4 lg:px-6" data-filter>
+    <div className="flex flex-wrap items-center gap-3 px-4 lg:px-6" data-filter data-tour="filter">
       <ToggleGroup type="single" variant="outline" size="sm" value={route.period} onValueChange={(v) => v && setQuery({ period: v })} aria-label="기간">
         {PERIODS.map((p) => <ToggleGroupItem key={p.v} value={p.v} className="px-3">{p.label}</ToggleGroupItem>)}
       </ToggleGroup>
@@ -25,9 +26,10 @@ export function FilterBar() {
   )
 }
 
-export const LimitNote = ({ extra }: { extra?: string }) => (
+// 개발 중(SHOW_DEV)에만 화면 아래에 보인다. 만드는 사람이 가정을 잊지 않게 하는 줄이고, 제출 화면의 사용자에게는 도움말의 「한계」 줄이 같은 내용을 준다.
+export const LimitNote = ({ extra }: { extra?: string }) => (SHOW_DEV ? (
   <p className="px-4 pb-2 text-xs text-muted-foreground lg:px-6" data-limit>이 화면의 한계: {ctx.d.app.limit}{[extra, settingsNote(ctx)].filter(Boolean).map((t) => ` · ${t}`).join('')}</p>
-)
+) : null)
 
 export const Section = ({ children }: { children: ReactNode }) => <div className="px-4 lg:px-6">{children}</div>
 export const Grid = ({ children }: { children: ReactNode }) => <div className="grid grid-cols-1 gap-4 px-4 lg:px-6 @3xl/main:grid-cols-2">{children}</div>

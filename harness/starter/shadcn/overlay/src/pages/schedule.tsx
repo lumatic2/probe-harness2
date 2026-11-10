@@ -99,7 +99,7 @@ export default function Schedule() {
       await save(body)
       toast.success('일정을 확정했습니다', { description: `${body.count}건 · ${body.ts.slice(11)}` })
     } catch (err) {
-      toast.error('저장하지 못했습니다', { description: `${(err as Error).message} — 서버가 켜져 있는지 확인하세요.` })
+      toast.error('저장하지 못했습니다', { description: `${(err as Error).message}. 서버가 켜져 있는지 확인하세요.` })
     } finally { setSaving(false) }
   }
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# shadcn 기반 한국어 운영 화면을 한 번에 세운다 — 당일 화면의 유일한 출발점. 페이지 6(대시보드·목록·상세·판정 입력·리포트·위젯 모음) + 도메인 설정에 해당 키가 있을 때만 켜지는 8(일정 격자 #/schedule · 문서 검토 #/review · AI 기능 #/assist · CSV 올리기 #/import · 기준값 설정 #/settings · 데이터셋 #/datasets · 실행 #/run · 노드 그래프 #/graph) + 로그인·내 정보 · 위젯 W1~W19(W17 AI 대화창은 설정 chat 이 있을 때만 헤더 버튼) · 도메인 설정 견본 9종. 숫자의 정본은 harness/guides/DESIGN.md 머리와 overlay/src/lib/pages.ts.
-# 사용: (작업 공간 루트에서) bash harness/starter/shadcn/make.sh [폴더=src/ui]   → 끝나면 cd src/ui && npx vite   (0.0.0.0:3000, PORT 환경변수로 바꿀 수 있음, strictPort). Dockerfile·DESIGN.md 도 src/ui 를 기본으로 본다.
+# shadcn 기반 한국어 운영 화면을 한 번에 세운다 — 당일 화면의 유일한 출발점. 페이지 6(대시보드·목록·상세·판정 입력·리포트·위젯 모음 = 데이터 위젯 W1~W19 + 기본 부품 U1~U19 + 결정 부품 D1~D5 + 보기 부품 V1~V7 + 검토 부품 R1~R8) + 도메인 설정에 해당 키가 있을 때만 켜지는 8(일정 격자 #/schedule · 문서 검토 #/review · AI 기능 #/assist · CSV 올리기 #/import · 기준값 설정 #/settings · 데이터셋 #/datasets · 실행 #/run · 노드 그래프 #/graph) + 로그인·내 정보 · 위젯 W1~W19(W17 AI 대화창은 설정 chat 이 있을 때만 헤더 버튼) · 도메인 설정 견본 9종. 숫자의 정본은 harness/guides/DESIGN.md 머리와 overlay/src/lib/pages.ts.
+# 사용: (작업 공간 루트에서) bash harness/starter/shadcn/make.sh [폴더=src/ui]   → 끝나면 cd src/ui && npx vite   (0.0.0.0:3000, PORT 환경변수로 바꿀 수 있음, strictPort · 응시 환경 Browser 의 Host(*.e2b.app) 허용 — 다르면 ALLOWED_HOSTS). Dockerfile·DESIGN.md 도 src/ui 를 기본으로 본다.
 # 순서: vite 뼈대 → npm install → tailwind → 별칭 → shadcn init(+토큰 확인·1회 재시도) → dashboard-01 + 필요한 부품 → overlay/ + 도메인 복사 → SK 테마 → tsc + vite build
 # 도메인 고르기: VITE_DOMAIN=education npx vite build (또는 주소 ?domain=education). 바꾸는 순서는 harness/starter/DOMAIN.md
 # overlay/server/ = /api/assist · /api/chat 의 AI 어댑터(OPENAI_API_KEY 가 있으면 OpenAI, 없으면 모의 응답) — vite.config.ts 가 불러 쓴다.
@@ -37,8 +37,8 @@ for (const f of ["tsconfig.json","tsconfig.app.json"]) {
 # init 이 가끔(네트워크 흔들림) src/index.css 에 색 토큰(--primary 등)을 못 쓰고 끝난다(동시 실행 중 자주) → 토큰을 확인하고 없으면 init 부터 한 번 다시, 그래도 없으면 동봉 index.base.css.
 install_ui() {
   npx -y shadcn@latest init -y "$@" -b radix -p nova --no-monorepo </dev/null >/dev/null
-  # 부품은 한 번의 add 에 이름을 나열한다(dashboard-01 이 sidebar·sheet·select·table·tabs·chart·sonner·toggle-group·badge·checkbox 등을 함께 가져온다).
-  npx -y shadcn@latest add dashboard-01 radio-group textarea progress alert switch collapsible dialog alert-dialog popover card input label field -y </dev/null >/dev/null
+  # 부품은 한 번의 add 에 이름을 나열한다(dashboard-01 이 sidebar·sheet·select·table·tabs·chart·sonner·toggle-group·badge·checkbox·breadcrumb·skeleton 등을 함께 가져온다). accordion·calendar·resizable·scroll-area 는 기본 부품 U1·U5·U12 용.
+  npx -y shadcn@latest add dashboard-01 radio-group textarea progress alert switch collapsible dialog alert-dialog popover card input label field accordion calendar resizable scroll-area -y </dev/null >/dev/null
 }
 has_tokens() { local t; for t in --background --foreground --primary --border --ring; do grep -q -- "$t:" src/index.css || { echo "  index.css 에 $t 없음"; return 1; }; done; }
 step "shadcn init (preset nova, 비대화형) + dashboard-01 + 입력·확인·피드백 부품"
@@ -55,6 +55,8 @@ mkdir -p src/domain; cp -R "$HERE/../domains/." src/domain/; rm -f src/domain/ge
 rm -rf src/domain/*/import-samples   # CSV 올리기 시험용 파일(domains/alarm/import-samples)은 앱에 싣지 않는다
 # Select 는 트리거 아래로 열려야 한다(원본 기본 item-aligned 는 트리거를 덮는다) — 기본 위치만 popper 로, 나머지 모양은 원본 그대로
 sed -i.bak 's/position = "item-aligned"/position = "popper"/' src/components/ui/select.tsx && rm -f src/components/ui/select.tsx.bak
+# 사이드바 여닫기 버튼의 읽어 주는 글자(원본은 영어)를 한국어로
+sed -i.bak 's/Toggle Sidebar/사이드바 여닫기/g' src/components/ui/sidebar.tsx && rm -f src/components/ui/sidebar.tsx.bak
 grep -q 'position = "popper"' src/components/ui/select.tsx || { echo "select.tsx 의 기본 위치를 popper 로 바꾸지 못했습니다"; exit 1; }
 # 폰트 = Pretendard 고정(키트 동봉 woff2, 외부 CDN 없음). vendor/fonts 는 키트 원본에선 harness 위, 미러(공개 레포)에선 레포 루트 — 위로 올라가며 찾는다.
 FONT=""; d="$HERE"
@@ -76,6 +78,25 @@ if (i >= 0) { let k = s.indexOf("{", i), n = 0; for (; k < s.length; k++) { if (
 fs.writeFileSync("src/index.css", s);
 JS
 cat "$HERE/sk-theme.css" >> src/index.css
+# 만드는 동안에는 개발 메뉴(왼쪽 메뉴의 「위젯 모음」, 화면 아래 「이 화면의 한계」 줄)를 켠 채로 빌드한다. .env.local 은 커밋되지 않는다(*.local).
+# 제출 전: 이 줄을 지우고(또는 VITE_DEV_MENU=0) 다시 빌드한다 — 지우면 메뉴에서만 사라지고 주소 #/widgets 로는 계속 열린다.
+grep -q '^VITE_DEV_MENU=' .env.local 2>/dev/null || echo 'VITE_DEV_MENU=1' >> .env.local
 step "타입 검사 + 빌드"; npx tsc -b; npx vite build >/dev/null
 mkdir -p data/store
-step "끝 — cd $DIR && npx vite preview (개발 서버는 Browser 에 노출하지 않는다) · Browser: PORT=3000(환경변수 PORT 로 변경), URL=/ · 기동 확인 GET /api/health"
+# 응시 환경 Browser 와 같은 조건(다른 Host)으로 빌드본 서버를 한 번 띄워 본다 — 여기서 200 이 아니면 Browser 에서 흰 화면이다. 점검용 포트(기본 3999)만 쓰고 자기가 띄운 PID 만 끈다. 실패해도 생성은 끝난 것으로 두고 경고만 낸다.
+step "미리보기 점검 — 다른 Host(*.e2b.app)로 / 와 /api/health"
+CHECK_PORT="${CHECK_PORT:-3999}"
+PORT="$CHECK_PORT" npx vite preview >/tmp/make-preview-check.log 2>&1 &
+CHECK_PID=$!
+CHECK_OK=""
+for _ in 1 2 3 4 5 6 7 8 9 10; do
+  sleep 1
+  A=$(curl -s -m 3 -o /dev/null -w "%{http_code}" -H "Host: check.e2b.app" "http://127.0.0.1:$CHECK_PORT/" 2>/dev/null || true)
+  B=$(curl -s -m 3 -o /dev/null -w "%{http_code}" -H "Host: check.e2b.app" "http://127.0.0.1:$CHECK_PORT/api/health" 2>/dev/null || true)
+  if [ "$A" = "200" ] && [ "$B" = "200" ]; then CHECK_OK=1; break; fi
+done
+kill "$CHECK_PID" 2>/dev/null || true
+if [ -n "$CHECK_OK" ]; then echo "  미리보기 점검 통과 — 화면 200 · API 200"
+else echo "  ⚠ 미리보기 점검 실패 — 화면 ${A:-응답 없음} · API ${B:-응답 없음}. harness/guides/BROWSER.md 「흰 화면이면」 순서로 가른다(로그: /tmp/make-preview-check.log)"; fi
+echo "  개발 메뉴 켜짐(.env.local VITE_DEV_MENU=1): 왼쪽 메뉴에 「위젯 모음」이 보인다. 제출 전에 그 줄을 지우고 다시 빌드한다."
+step "끝 — cd $DIR && npx vite preview (개발 서버는 Browser 에 노출하지 않는다) · Browser: 포트 칸 3000(환경변수 PORT 로 변경), 경로 칸 / · 기동 확인 GET /api/health"

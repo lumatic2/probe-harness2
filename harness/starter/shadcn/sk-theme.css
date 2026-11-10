@@ -27,3 +27,38 @@ html[data-density="compact"] [data-slot="card-content"] { padding-block: 0.5rem;
 
 /* 긴급·정지 배지 = 옅은 주황 바탕 + 진한 주황 글자 + 옅은 테두리 (Badge variant="outline" 에 얹는다) */
 .sk-urgent { background: #fff1e6; color: #b84a00; border-color: #ffd2b0; }
+
+/* 움직임 — 화면 규약의 한도 안에서만. 접힘·나타남 150ms, 저장 직후 새 행 강조 1회 1.2초, 로그인·로그아웃 전환 화면 1초. 그 밖의 움직임은 넣지 않는다. */
+@keyframes sk-flash { from { background-color: #fff1e6; } to { background-color: transparent; } }
+@keyframes sk-fade { from { opacity: 0; } to { opacity: 1; } }
+.sk-flash { animation: sk-flash 1.2s ease-out 1; }                      /* 방금 저장돼 새로 생긴 행 */
+.sk-fade { animation: sk-fade 150ms ease-out; }                         /* 내용이 통째로 바뀐 자리(차트의 지표 전환) */
+.sk-reveal { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 150ms ease-out; }  /* 펼침·접힘 — <Reveal> 이 쓴다 */
+.sk-reveal[data-open="true"] { grid-template-rows: 1fr; }
+.sk-reveal > * { min-height: 0; overflow: hidden; }
+@media (prefers-reduced-motion: reduce) { .sk-flash, .sk-fade { animation: none; } .sk-reveal { transition: none; } }
+
+/* 로그인·로그아웃 전환 화면(lib/transition.ts) — 누른 순간부터 최소 1초, 새로고침 앞뒤를 같은 화면으로 덮는다. 막대는 그 1초를 보여 준다. */
+@keyframes sk-progress { from { width: 0; } to { width: 100%; } }
+.sk-transition { position: fixed; inset: 0; z-index: 2147483647; /* 토스트보다 위 — 전환 중에는 이 화면만 보인다 */ display: flex; align-items: center; justify-content: center; background: var(--muted); transition: opacity 150ms ease-out; }
+.sk-transition[data-leaving="true"] { opacity: 0; }
+.sk-transition-box { display: flex; width: min(20rem, calc(100vw - 3rem)); flex-direction: column; gap: 0.5rem; text-align: center; }
+.sk-transition-title { font-size: 1rem; font-weight: 600; color: var(--foreground); }
+.sk-transition-sub { font-size: 0.875rem; color: var(--muted-foreground); }
+.sk-transition-bar { margin-top: 0.75rem; height: 2px; overflow: hidden; border-radius: 2px; background: var(--border); }
+.sk-transition-bar > span { display: block; height: 100%; background: var(--foreground); animation: sk-progress 1s linear forwards; }
+@media (prefers-reduced-motion: reduce) { .sk-transition { transition: none; } .sk-transition-bar > span { animation: none; width: 100%; } }
+
+/* 스크롤바 자리를 항상 비워 둔다 — 내용이 길어져 스크롤바가 생기거나 사라질 때 화면이 옆으로 흔들리지 않는다. */
+html { scrollbar-gutter: stable; }
+/* 메뉴·선택·모달·시트가 열리면 Radix 가 본문 스크롤을 잠그면서 「사라진 스크롤바만큼」 body 에 오른쪽 여백을 준다.
+   우리는 스크롤바 자리를 항상 비워 두므로(위 줄) 사라지는 것이 없다 — 그 여백이 그대로 화면을 왼쪽으로 민다. 여백을 0 으로 되돌린다.
+   (원인: react-remove-scroll-bar 가 넣는 body[data-scroll-locked] { margin-right: <스크롤바 폭>px !important }) */
+html body[data-scroll-locked] { margin-right: 0 !important; padding-right: 0 !important; --removed-body-scroll-bar-size: 0px !important; }
+html body[data-scroll-locked] .right-scroll-bar-position, html body[data-scroll-locked] .width-before-scroll-bar { right: 0 !important; margin-right: 0 !important; }
+
+/* 줄바꿈: 한국어 낱말 중간에서 줄을 끊지 않는다(화면 전체). 긴 ID·주소처럼 띄어쓰기가 없는 글자만 넘칠 때 끊는다.
+   제목은 줄 길이를 고르게(balance), 본문은 마지막 줄에 한 낱말만 남지 않게(pretty). */
+body { word-break: keep-all; overflow-wrap: anywhere; }
+h1, h2, h3, [data-slot="dialog-title"], [data-slot="card-title"], [data-slot="sheet-title"], [data-slot="alert-title"] { text-wrap: balance; }
+p, li, dd, [data-slot="dialog-description"], [data-slot="card-description"], [data-slot="alert-description"] { text-wrap: pretty; }

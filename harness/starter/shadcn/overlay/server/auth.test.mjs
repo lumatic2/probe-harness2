@@ -69,3 +69,29 @@ test('입력 검사와 잠금 — 빈 값 400, 실패 5회면 60초 429, 성공�
   t += 60 * 1000 + 1;
   assert.equal(a.login({ id: 'op', password: OP }).status, 200);
 });
+
+test('로그인 응답에 token 이 있고, 그 값은 쿠키의 세션과 같다(쿠키가 막힌 환경의 헤더 통로)', () => {
+  const a = createAuth({ env, token: () => 'tok-9' });
+  const ok = a.login({ id: 'op', password: OP });
+  assert.equal(ok.json.token, 'tok-9');
+  assert.equal(a.me(`${COOKIE}=tok-9`).status, 200);
+  assert.equal(a.login({ id: 'op', password: 'wrong' }).json.token, undefined);
+});
+
+test('빠른 로그인 — AUTH_QUICK=1 일 때만 계정 목록(비밀번호 없음)이 나가고 {quick:id} 로 들어간다', () => {
+  const off = createAuth({ env });
+  assert.deepEqual(off.me('').json.quick, []);
+  assert.equal(off.login({ quick: 'op' }).status, 403);
+  const on = createAuth({ env: { ...env, AUTH_QUICK: '1' }, token: () => 'tok-q' });
+  const list = on.me('').json.quick;
+  assert.deepEqual(list, [{ id: 'op', name: '운영자', role: 'operator' }, { id: 'u1', name: '사용자 1', role: 'user' }]);
+  assert.ok(!JSON.stringify(list).includes(OP) && !JSON.stringify(list).includes(U1), '목록에 비밀번호가 없어야 한다');
+  assert.equal(on.login({ quick: 'nobody' }).status, 401);
+  const ok = on.login({ quick: 'u1' });
+  assert.equal(ok.status, 200);
+  assert.equal(ok.json.user.role, 'user');
+  assert.equal(ok.json.canWrite, false);
+  assert.equal(on.me(`${COOKIE}=tok-q`).status, 200);
+  // 로그인이 꺼져 있으면 AUTH_QUICK 는 아무 일도 하지 않는다
+  assert.equal(createAuth({ env: { AUTH_QUICK: '1' } }).quick, false);
+});

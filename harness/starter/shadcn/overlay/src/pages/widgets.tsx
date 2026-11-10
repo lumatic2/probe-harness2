@@ -1,7 +1,8 @@
-// 위젯 모음 #/widgets — W1~W19 를 번호·이름·「언제 쓰나」와 함께 카드로 나열. 당일 어떤 위젯을 쓸지 고르는 카탈로그.
+// 위젯 모음 #/widgets — 입력·확인·피드백 부품 → 기본 부품 U1~U19 → 결정 부품 D1~D5 → 보기 부품 V1~V7 → 검토 부품 R1~R8 → 데이터 위젯 W1~W19 를 번호·이름·「언제 쓰나」와 함께 카드로 나열. 당일 어떤 부품을 쓸지 고르는 카탈로그.
 import type { ReactNode } from 'react'
 import { InteractionGallery } from '@/components/interaction-gallery'
 import { LimitNote } from '@/components/page-parts'
+import { PartsGallery } from '@/components/parts-gallery'
 import { useApp } from '@/lib/app-context'
 import { chatConfig, chatContext } from '@/domain/chat.mjs'
 import { buildInputs, ctx, type Route } from '@/lib/derive'
@@ -34,8 +35,8 @@ export const WIDGETS: Entry[] = [
   { no: 'W15', name: '분포', wide: true, when: '수치 열이 어디에 몰리는지, 중앙값과 p90 은 어디인지, 그룹마다 어떻게 다른지 보여 줄 때', render: (i) => <Distribution w={i.w15} /> },
   { no: 'W16', name: '행렬 히트맵', when: '두 범주(출발×도착, 라인×팀)의 조합마다 건수·평균이 얼마인지 보여 줄 때(칸을 누르면 그 조합의 목록)', render: (i) => (i.w16 ? <Heatmap w={i.w16} /> : <Empty>이 도메인 설정에 행렬이 없습니다.</Empty>) },
   { no: 'W17', name: 'AI 대화창', wide: true, when: '지금 보는 화면의 데이터를 AI 에게 묻고 답을 받을 때(대화는 페이지를 옮겨도 남고, 서버에 키가 없으면 모의 응답)', render: (_i, route) => <ChatPanel context={chatContext(ctx, route)} suggestions={chatConfig(ctx.d)?.suggestions} title="AI 대화창" /> },
-  { no: 'W18', name: '녹음·전사', when: '사용자가 말로 입력해야 할 때(인터뷰 답변, 점검 메모를 말로) — 녹음 또는 오디오 파일을 글로 바꿔 입력란에 넣는다', render: () => <Recorder /> },
-  { no: 'W19', name: '노드 그래프', wide: true, when: '지도 없이 지점·설비·창고처럼 위치가 있는 대상을 노드로, 경로·이동·흐름을 선으로 보여 줄 때(범례 칩으로 한 그룹만 보기, 노드 누르면 상세) — 화면은 #/graph', render: () => <NodeGraph data={SAMPLE_GRAPH} height={360} /> },
+  { no: 'W18', name: '녹음·전사', when: '사용자가 말로 입력해야 할 때(인터뷰 답변, 점검 메모를 말로), 녹음 또는 오디오 파일을 글로 바꿔 입력란에 넣는다', render: () => <Recorder /> },
+  { no: 'W19', name: '노드 그래프', wide: true, when: '지도 없이 지점·설비·창고처럼 위치가 있는 대상을 노드로, 경로·이동·흐름을 선으로 보여 줄 때(범례 칩으로 한 그룹만 보기, 노드 누르면 상세), 화면은 #/graph', render: () => <NodeGraph data={SAMPLE_GRAPH} height={360} /> },
 ]
 
 export default function Widgets() {
@@ -44,6 +45,8 @@ export default function Widgets() {
   return (
     <>
       <InteractionGallery />
+      <PartsGallery />
+      <div className="px-4 lg:px-6"><h2 className="text-base font-semibold">데이터 위젯 W1~W19</h2><p className="text-sm text-muted-foreground">도메인 설정(domain.json)의 데이터를 읽어 그리는 위젯. 가져오는 곳: @/widgets/*</p></div>
       <div className="grid grid-cols-1 gap-4 px-4 lg:px-6 @3xl/main:grid-cols-2">
         {WIDGETS.map((w) => (
           <div key={w.no} className={w.wide ? '@3xl/main:col-span-2' : ''}>

@@ -31,7 +31,7 @@ export default function Dashboard() {
         <WidgetCard no="W5" title={i.w5.title} href={link('list')} linkLabel="목록"><Heatmap w={i.w5} /></WidgetCard>
         <WidgetCard no="W7" title={i.w7.title} href={link('list')} linkLabel="목록"><Funnel w={i.w7} /></WidgetCard>
       </Grid>
-      <DataTable rows={rows} sort={sortProp} />
+      <div data-tour="queue"><DataTable rows={rows} sort={sortProp} /></div>
       <Section>
         <WidgetCard no="W13" title={i.w13.title}><FloorMap w={i.w13} /></WidgetCard>
       </Section>

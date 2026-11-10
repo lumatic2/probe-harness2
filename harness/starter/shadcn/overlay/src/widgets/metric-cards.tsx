@@ -16,7 +16,8 @@ function DeltaBadge({ it }: { it: MetricItem }) {
   if (!it.better) return <Badge variant="outline" className="text-muted-foreground">{up ? '▲' : '▼'} {fmt(Math.abs(it.delta), dec)}{it.unit === '%' ? '%p' : it.unit}</Badge>
   const good = it.better === 'down' ? !up : up
   return (
-    <Badge variant="outline">
+    // 개선 = 채운 중립 배지, 악화 = 위험색 글자·테두리 — 화살표 방향이 아니라 좋아졌는지 나빠졌는지가 색으로도 갈린다(글자는 항상 같이)
+    <Badge variant={good ? 'secondary' : 'outline'} className={good ? '' : 'border-destructive/50 text-destructive'} data-delta={good ? 'better' : 'worse'}>
       {up ? '▲' : '▼'} {fmt(Math.abs(it.delta), dec)}{it.unit === '%' ? '%p' : it.unit} {good ? '개선' : '악화'}
     </Badge>
   )
@@ -25,8 +26,8 @@ function DeltaBadge({ it }: { it: MetricItem }) {
 export function MetricCards({ items, cols = 4 }: { items: MetricItem[]; cols?: 4 | 5 }) {
   if (!items.length) return <Empty />
   return (
-    <div>
-      <div className={`grid grid-cols-1 gap-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card *:data-[slot=card]:shadow-xs @xl/main:grid-cols-2 ${cols === 5 ? '@5xl/main:grid-cols-5' : '@5xl/main:grid-cols-4'}`}>
+    <div data-tour="metrics">
+      <div className={`grid grid-cols-1 gap-4 *:data-[slot=card]:shadow-xs @xl/main:grid-cols-2 ${cols === 5 ? '@5xl/main:grid-cols-5' : '@5xl/main:grid-cols-4'}`}>
         {items.map((it) => (
           <Card key={it.label} className="@container/card">
             <CardHeader>
