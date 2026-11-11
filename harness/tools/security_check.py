@@ -16,7 +16,7 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")  # cp949 콘솔에서도 한글 출력
 from pathlib import Path
 
-KIT_DIRS = (".agents/", "harness/guides/", "harness/roles/", "harness/tools/", "harness/approaches/", "harness/methods/")  # 킷 문서 — 패턴 설명·출처 주소(sk-hynix-… 꼴)가 들어 있어 시크릿 검사에서 뺀다. 가져다 쓴 코드는 src/ 에서 검사된다
+KIT_DIRS = (".agents/", "harness/guides/", "harness/roles/", "harness/tools/", "harness/approaches/", "harness/methods/", "harness/pitch/")  # 킷 문서 — 패턴 설명·출처 주소(sk-hynix-… 꼴)가 들어 있어 시크릿 검사에서 뺀다. 가져다 쓴 코드는 src/ 에서 검사된다
 STARTER = "harness/starter/"  # 화면 출발점 원본 — 「확인 필요」는 세지 않는다(가져다 쓴 복사본은 src/ 등에서 검사된다)
 CODE_EXT = {".py", ".js", ".mjs", ".cjs", ".ts", ".tsx", ".jsx", ".sh", ".go", ".rb", ".java"}
 SECRET = re.compile(
