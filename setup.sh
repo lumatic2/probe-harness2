@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # setup.sh — 클론한 하네스를 작업 공간에 합친다. 에이전트가 README 「세팅」 절대로 실행한다.
 # 사용: (작업 공간에서) bash probe-harness2/setup.sh [작업공간]
-# 결과: 루트에 AGENTS.md·docs/·.agents/·harness/(guides·roles·starter·tools·vendor·verify.sh) 가 생긴다.
+# 결과: 루트에 AGENTS.md·docs/·.agents/·harness/(guides·roles·approaches·methods·starter·tools·vendor·pitch·verify.sh) 가 생긴다.
 #   작업공간 기본값 = 현재 폴더. 클론 폴더 안에서 실행했으면 그 부모.
 # 규칙: 과제가 준 파일은 덮어쓰지 않는다. AGENTS.md 만 예외 — 우리 것 + 원래 내용을 맨 끝 절에 붙인다.
 set -eu

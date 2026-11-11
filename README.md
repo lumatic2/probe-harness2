@@ -27,7 +27,7 @@ README.md  EXPORT_SCHEMA.md 류  data/ …   ← 과제 원문 (그대로 — �
 AGENTS.md                  ← 모든 탭 공통 규칙
 docs/                      ← 과제설정 · PROBLEM · SOLUTION · PLAN · ARCHITECTURE · DECISIONS · 서술형-대비 · 세션.txt · interview/
 .agents/skills/            ← 스킬 9개 ($handoff $verify $decision $evaluate $design-review $security $submit $grilling $systematic-debugging)
-harness/                   ← 에이전트만 본다: roles/ guides/ approaches/(다른 분야의 눈·반도체 현장 관점·용어집) methods/(기법 문서와 코드) starter/ tools/ vendor/ verify.sh
+harness/                   ← 에이전트만 본다: roles/ guides/ approaches/(다른 분야의 눈·반도체 현장 관점·용어집) methods/(기법 문서와 코드) starter/ tools/ vendor/ pitch/(발표자료 틀 — 사용자가 시킬 때만) verify.sh
 ```
 
 ## 흐름 한 줄
