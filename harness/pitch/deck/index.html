@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>피칭 덱 템플릿</title>
+<!--
+  쓰는 법
+  - ⟨ ⟩ 로 감싼 글자만 바꾼다. 구조·시간은 ../스크립트-구조.md.
+  - ← → (또는 스페이스·PageUp/Down) 로 넘긴다. Home = 표지, End = 마지막. A = 부록 첫 장, F = 전체 화면.
+  - 숫자 1~9 = 그 번호 장. 닫기 장에서 → 를 눌러도 부록으로 넘어가지 않는다(부록은 A 로만 연다).
+  - 3장 캡처는 assets/capture.png 로 저장하면 자동으로 들어간다(없으면 빈 틀).
+  - 이 폴더(deck/)만 있으면 뜬다: 그림·글꼴은 전부 assets/ 안에 있고 바깥 요청이 없다.
+    파일 하나로 들고 가려면 python3 pack.py (발표자료.html 한 파일에 전부 넣는다. 안 채운 ⟨ ⟩ 도 세어 준다).
+  - 글자가 길어 자리를 넘으면 그 글자만 자동으로 줄어든다(아래 스크립트 fitAll). 22px 밑으로는 줄지 않는다.
+  - PDF 는 브라우저 인쇄(배경 그래픽 켜기) — 한 장이 한 쪽.
+  - 제목(서비스 이름·1장 문장) = HiKR, 본문 = SUIT. 긴 줄표(엠대시)는 쓰지 않는다.
+-->
+<style>
+@font-face{font-family:HiKR;src:url(assets/fonts/HiKR-ExtraBold.woff2) format("woff2");font-weight:800}
+@font-face{font-family:SUIT;src:url(assets/fonts/SUIT-Variable.woff2) format("woff2");font-weight:100 900}
+:root{--ink:#fff;--sub:#b9b2b0;--dim:#7d7573;--accent:#ff6600;--warm:#ff9a3d;--kick:#ff4d6a;--line:rgba(255,255,255,.16);--panel:rgba(255,255,255,.045)}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#000;overflow:hidden}
+#stage{position:absolute;left:50%;top:50%;width:1920px;height:1080px;transform-origin:0 0}
+.s{position:absolute;inset:0;visibility:hidden;overflow:hidden;color:var(--ink);font-family:SUIT,"Pretendard","Apple SD Gothic Neo","Malgun Gothic",sans-serif;background:#050203 center/cover no-repeat;word-break:keep-all}
+.s.on{visibility:visible}
+.bg-cover{background-image:url(assets/bg/cover-bg.jpg)}
+.bg-close{background-image:url(assets/bg/closing-bg.jpg)}
+.bg-body{background-image:url(assets/bg/content-bg.jpg)}
+.h{font-family:HiKR,SUIT,sans-serif;font-weight:800;line-height:1.1;color:#fff}
+@supports ((-webkit-background-clip:text) or (background-clip:text)){.h{background:linear-gradient(#fff 40%,#ffd9c2);-webkit-background-clip:text;background-clip:text;color:transparent}}
+.label{position:absolute;left:110px;top:92px;font-size:30px;font-weight:700;color:var(--kick);letter-spacing:.02em}
+.label b{font-weight:700;margin-left:14px}
+.note{position:absolute;left:110px;right:110px;bottom:104px;font-size:34px;font-weight:500;color:var(--sub)}
+
+/* 표지 */
+.cover .wrap{position:absolute;left:110px;top:210px;width:1050px}
+.cover .sub{font-size:36px;font-weight:600;margin-bottom:26px}
+.cover .h{font-size:180px;white-space:nowrap}
+.cover .event{font-size:38px;font-weight:700;color:var(--kick);margin-top:44px}
+.cover .event i{font-style:normal;font-weight:400;color:var(--line);margin:0 18px}
+.cover .who{font-weight:600;color:var(--ink)}
+.logos{position:absolute;left:110px;bottom:70px;display:flex;align-items:center;gap:46px}
+.logos img{height:34px;display:block}
+.logos img.skh{height:56px}
+
+/* 1 접근방식 */
+.one .h{position:absolute;left:110px;top:310px;width:1700px;font-size:116px}
+
+/* 2 솔루션 */
+.flow{position:absolute;left:110px;right:110px;top:300px;display:flex;align-items:stretch;gap:0}
+.box{flex:1 1 0;min-width:0;min-height:320px;padding:34px 30px;border:1px solid var(--line);border-radius:18px;background:var(--panel);display:flex;flex-direction:column}
+.box .n{font-size:22px;font-weight:700;color:var(--dim);font-variant-numeric:tabular-nums}
+.box .t{font-size:40px;font-weight:800;line-height:1.25;margin-top:16px}
+.box .d{font-size:25px;font-weight:500;line-height:1.5;color:var(--sub);margin-top:auto}
+.box.human{border:2px solid var(--accent);background:rgba(255,102,0,.13)}
+.box.human .n{color:var(--warm)}
+.arrow{flex:0 0 54px;display:flex;align-items:center;justify-content:center;color:var(--dim);font-size:34px}
+.concl{position:absolute;left:110px;right:110px;top:690px;text-align:center}
+.concl .dn{font-size:54px;line-height:1;color:var(--accent)}
+.concl .c{font-size:54px;font-weight:800;margin-top:22px}
+.two .title{position:absolute;left:110px;right:110px;white-space:nowrap;top:170px;font-size:60px;font-weight:800}
+
+/* 3 결과 */
+.three .title{position:absolute;left:110px;right:110px;white-space:nowrap;top:170px;font-size:60px;font-weight:800}
+.cap{position:absolute;left:110px;top:300px;width:1010px;height:568px;border:1px solid var(--line);border-radius:16px;background:var(--panel) center/cover no-repeat;display:flex;align-items:center;justify-content:center;color:var(--dim);font-size:28px;overflow:hidden}
+.cap img{width:100%;height:100%;object-fit:cover;object-position:top left}
+.nums{position:absolute;left:1190px;right:110px;top:300px;display:flex;flex-direction:column;gap:44px}
+.num .k{font-size:28px;font-weight:600;color:var(--sub)}
+.num .v{font-family:HiKR,SUIT;font-size:128px;line-height:1.05;white-space:nowrap;color:var(--ink);font-variant-numeric:tabular-nums}
+.num .v small{font-family:SUIT;font-size:44px;font-weight:700;margin-left:8px}
+.num .b{font-size:26px;font-weight:500;color:var(--sub);margin-top:6px}
+.tag{display:inline-block;font-size:22px;font-weight:700;padding:5px 14px;border-radius:999px;border:1px solid var(--line);color:var(--ink);margin-left:12px;vertical-align:middle}
+.tag.pred{border-color:var(--accent);color:var(--warm)}
+
+/* 닫기 */
+.close .wrap{position:absolute;left:110px;right:110px;top:120px;text-align:center}
+.close .h{font-size:150px;white-space:nowrap}
+.close .line{font-size:46px;font-weight:600;margin-top:26px}
+
+/* 부록 */
+.apx .title{position:absolute;left:110px;right:110px;white-space:nowrap;top:170px;font-size:56px;font-weight:800}
+.apx .body{overflow:hidden;position:absolute;left:110px;right:110px;top:290px;bottom:120px;border:1px dashed var(--line);border-radius:16px;padding:40px 46px;font-size:30px;line-height:1.7;color:var(--sub)}
+.apx .body b{color:var(--ink)}
+@media print{@page{size:1920px 1080px;margin:0}html,body{overflow:visible;height:auto}#stage{position:static;transform:none!important;width:auto;height:auto}.s{visibility:visible!important;position:relative;width:1920px;height:1080px;page-break-after:always;-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+</style>
+</head>
+<body>
+<div id="stage">
+
+<!-- ───────── 표지 (10초) ───────── -->
+<section class="s cover bg-cover on">
+  <div class="wrap">
+    <div class="sub">⟨부제 한 줄: 누가, 무엇을 결정하게 돕는가⟩</div>
+    <div class="h">⟨NAME⟩</div>
+    <div class="event">SK하이닉스 AI 해커톤 2026 결선<i>|</i><span class="who">⟨발표자⟩</span></div>
+  </div>
+  <div class="logos">
+    <img class="skh" src="assets/logo/sk_hynix.svg" alt="SK hynix">
+    <img src="assets/logo/krafton.png" alt="KRAFTON">
+    <img src="assets/logo/cofa.png" alt="Cofa">
+    <img src="assets/logo/openai.png" alt="OpenAI">
+    <img src="assets/logo/likelion.svg" alt="멋쟁이사자처럼">
+    <img src="assets/logo/programmers.png" alt="programmers">
+  </div>
+</section>
+
+<!-- ───────── 1 접근방식 (50초) · 화면엔 한 문장만 ───────── -->
+<section class="s one bg-body">
+  <div class="label">01<b>접근방식</b></div>
+  <div class="h">⟨다른 분야 기법⟩의 눈으로<br>⟨현장 문제⟩를 본다면?</div>
+  <!-- 예: 원가회계의 눈으로<br>반도체 현장을 본다면? -->
+  <div class="note">⟨지표⟩에서 거꾸로 내려와, ⟨지렛대⟩ 하나를 움직인다</div>
+</section>
+
+<!-- ───────── 2 솔루션 (50초) · 상자 3~5개, 사용 시나리오 겸 ───────── -->
+<section class="s two bg-body">
+  <div class="label">02<b>솔루션</b></div>
+  <div class="title">⟨누가⟩ ⟨언제⟩ 이렇게 씁니다</div>
+  <div class="flow">
+    <div class="box"><div class="n">1</div><div class="t">⟨데이터가<br>들어온다⟩</div><div class="d">⟨읽기 전용 스냅샷 · 원본은 건드리지 않는다⟩</div></div>
+    <div class="arrow">→</div>
+    <div class="box"><div class="n">2</div><div class="t">⟨계산하고<br>판정한다⟩</div><div class="d">⟨솔버·모델이 맡는 일⟩</div></div>
+    <div class="arrow">→</div>
+    <div class="box"><div class="n">3</div><div class="t">⟨AI 가<br>제안한다⟩</div><div class="d">⟨근거와 신뢰도를 함께⟩</div></div>
+    <div class="arrow">→</div>
+    <div class="box human"><div class="n">4 · 사람</div><div class="t">⟨사람이<br>결정한다⟩</div><div class="d">⟨승인 · 수정 · 반려⟩</div></div>
+    <div class="arrow">→</div>
+    <div class="box"><div class="n">5</div><div class="t">⟨기록하고<br>다시 잰다⟩</div><div class="d">⟨결정 기록 · 다음 측정 지표⟩</div></div>
+  </div>
+  <div class="concl"><div class="dn">↓</div><div class="c">⟨핵심 결론 한 문장⟩</div></div>
+</section>
+
+<!-- ───────── 3 결과 (50초) · 캡처 한 컷 + 큰 숫자 1~2개 ───────── -->
+<section class="s three bg-body">
+  <div class="label">03<b>결과</b></div>
+  <div class="title">⟨한 줄 결과: 무엇이 얼마나 움직였나⟩</div>
+  <div class="cap"><img src="assets/capture.png" alt="" onerror="this.replaceWith('실제로 돈 화면 캡처 (deck/assets/capture.png)')"></div>
+  <div class="nums">
+    <div class="num">
+      <div class="k">⟨지렛대 지표⟩ <span class="tag">측정</span></div>
+      <div class="v">⟨Y⟩<small>⟨단위⟩</small></div>
+      <div class="b">현행 ⟨X⟩ 에서 · 검증 ⟨N⟩건</div>
+    </div>
+    <div class="num">
+      <div class="k">⟨원화 환산⟩ <span class="tag pred">예측</span></div>
+      <div class="v">⟨a~b⟩<small>⟨억 원/년⟩</small></div>
+      <div class="b">가정: ⟨한 줄⟩</div>
+    </div>
+  </div>
+</section>
+
+<!-- ───────── 닫기 (20초) · 표지 계열 + 서비스 이름 + 핵심 문장 ───────── -->
+<section class="s close bg-close">
+  <div class="wrap">
+    <div class="h">⟨NAME⟩</div>
+    <div class="line">⟨핵심 문장 하나⟩</div>
+    <!-- 후보별: Overlay 「같은 숫자를, 같은 정의로, 한 화면에서.」 · Override 「AI 는 제안하고, 결정은 사람이 합니다.」 · Overclock 「기본값 너머, 제약 안에서.」 -->
+  </div>
+</section>
+
+<!-- ═════════ 부록 (발표에선 안 넘김 · Q&A 와 5·7분 판) ═════════ -->
+<section class="s apx bg-body" data-apx>
+  <div class="label">부록 A1<b>지표 트리</b></div>
+  <div class="title">왜 이 지표인가</div>
+  <div class="body"><b>⟨목표 한 문장⟩</b><br>⟨지표 트리: 목표 → 하위 지표 → 지렛대 지표에 표시⟩</div>
+</section>
+<section class="s apx bg-body">
+  <div class="label">부록 A2<b>솔루션 세부</b></div>
+  <div class="title">어떻게 만들었나 · 보안은</div>
+  <div class="body">⟨모델 · 솔버 · 데이터 층 · 감사 로그⟩<br><b>원본 데이터는 건드리지 않는다</b>: ⟨읽기 전용 스냅샷 · 조회 예산⟩</div>
+</section>
+<section class="s apx bg-body">
+  <div class="label">부록 A3<b>고르지 않은 후보</b></div>
+  <div class="title">왜 이 문제인가</div>
+  <div class="body"><b>⟨후보 1⟩</b>: ⟨고르지 않은 이유 한 줄⟩<br><b>⟨후보 2⟩</b>: ⟨고르지 않은 이유 한 줄⟩</div>
+</section>
+<section class="s apx bg-body">
+  <div class="label">부록 A4<b>역할 분담</b></div>
+  <div class="title">AI 를 어디에, 왜 썼나</div>
+  <div class="body"><b>솔버</b>: ⟨이 판단⟩ · <b>AI</b>: ⟨이 설명⟩ · <b>사람</b>: ⟨이 승인⟩<br>⟨이번에 처음 붙인 툴과 고른 이유⟩</div>
+</section>
+<section class="s apx bg-body">
+  <div class="label">부록 A5<b>숫자의 근거</b></div>
+  <div class="title">원화 산식 · 가정이 틀리면</div>
+  <div class="body"><b>산식</b>: ⟨하한(원가) · 상한(기회비용)⟩<br><b>가정</b>: ⟨…⟩ · <b>민감도</b>: ⟨가정이 ±x 일 때 결과⟩</div>
+</section>
+<section class="s apx bg-body">
+  <div class="label">부록 A6<b>3대 미래 역량</b></div>
+  <div class="title">무엇으로 증명했나</div>
+  <div class="body"><b>본질적 탐구 역량</b>: ⟨지표 트리를 끝까지 내려간 흔적⟩<br><b>변화 적응력</b>: ⟨처음 붙인 툴과 이유⟩<br><b>사고적 다양성</b>: ⟨다른 분야에서 옮긴 접근 · 여러 부서가 같은 숫자를 보는 화면⟩</div>
+</section>
+<section class="s apx bg-body">
+  <div class="label">부록 A7<b>한계와 다음</b></div>
+  <div class="title">현장에 어떻게 붙이나</div>
+  <div class="body"><b>한계</b>: ⟨알고 제출하는 것⟩<br><b>도입</b>: 승인자 ⟨…⟩ · 3개월 뒤 잴 지표 ⟨…⟩ · 감시할 부작용 ⟨…⟩</div>
+</section>
+
+</div>
+<script>
+const S=[...document.querySelectorAll('.s')],stage=document.getElementById('stage');
+const APX=S.findIndex(s=>s.hasAttribute('data-apx')),LAST=(APX<0?S.length:APX)-1; // LAST = 닫기 장
+let i=Math.max(0,Math.min(S.length-1,(parseInt(location.hash.slice(1))||1)-1));
+function show(n){i=Math.max(0,Math.min(S.length-1,n));S.forEach((s,k)=>s.classList.toggle('on',k===i));try{history.replaceState(null,'','#'+(i+1))}catch(e){}}
+function next(){if(i!==LAST)show(i+1)} // 닫기에서 한 번 더 눌러도 부록이 뜨지 않는다
+function fit(){const k=Math.min(innerWidth/1920,innerHeight/1080);stage.style.transform=`scale(${k}) translate(-50%,-50%)`}
+
+/* 글자 맞춤: 채운 글자가 자리를 넘으면 그 글자만 줄인다. 22px 이 바닥. */
+const MIN=22;
+function shrink(els,over){els=[].concat(els);let g=200;while(over()&&g--){let moved=false;
+  for(const el of els){const f=parseFloat(getComputedStyle(el).fontSize);if(f>MIN){el.style.fontSize=Math.max(MIN,f-2)+'px';moved=true}}
+  if(!moved)break}}
+const wide=el=>()=>el.scrollWidth>el.clientWidth+1, tall=(el,h)=>()=>el.offsetHeight>h;
+function fitAll(){
+  document.querySelectorAll('[data-fitted]').forEach(el=>{el.style.fontSize='';el.removeAttribute('data-fitted')});
+  const mark=els=>[].concat(els).forEach(el=>el.setAttribute('data-fitted',''));
+  const run=(els,over)=>{els=[].concat(els).filter(Boolean);if(!els.length)return;mark(els);shrink(els,over)};
+  const q=(s,r=document)=>[...r.querySelectorAll(s)];
+  q('.cover .h,.close .h,.title,.num .v').forEach(el=>run(el,wide(el)));      // 한 줄짜리: 폭
+  q('.one .h').forEach(el=>run(el,tall(el,540)));                              // 1장 문장: 아래 한 줄과 안 겹치게
+  q('.box .t').forEach(el=>run(el,wide(el)));                                  // 상자 제목: 긴 낱말
+  q('.flow').forEach(f=>{run(q('.box .d',f),tall(f,360));run(q('.box .t',f),tall(f,360))}); // 상자 줄: 결론 줄과 안 겹치게
+  q('.concl').forEach(c=>run(q('.c',c),tall(c,270)));
+  q('.nums').forEach(n=>{run(q('.b,.k',n),tall(n,640));run(q('.v',n),tall(n,640))});
+  q('.close .wrap').forEach(w=>run(q('.line',w),tall(w,400)));
+  q('.cover .wrap').forEach(w=>run(q('.sub',w),tall(w,640)));
+  q('.note').forEach(el=>run(el,tall(el,100)));
+  q('.apx .body').forEach(el=>run(el,()=>el.scrollHeight>el.clientHeight+1));
+}
+addEventListener('resize',fit);fit();show(i);fitAll();
+addEventListener('load',fitAll);
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fitAll);
+addEventListener('beforeprint',fitAll);
+addEventListener('keydown',e=>{const k=e.key;if(e.ctrlKey||e.metaKey||e.altKey)return;
+  if(['ArrowRight','PageDown',' ','Enter'].includes(k)){e.preventDefault();next()}
+  else if(['ArrowLeft','PageUp','Backspace'].includes(k)){e.preventDefault();show(i-1)}
+  else if(k==='Home')show(0);else if(k==='End')show(LAST);
+  else if(/^[1-9]$/.test(k))show(+k-1);
+  else if((k==='a'||k==='A')&&APX>=0)show(APX);
+  else if(k==='f'||k==='F'){const r=document.documentElement.requestFullscreen?.();r&&r.catch&&r.catch(()=>{})}
+});
+addEventListener('click',e=>{e.clientX<innerWidth/3?show(i-1):next()});
+</script>
+</body>
+</html>
